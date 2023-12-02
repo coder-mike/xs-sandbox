@@ -1,4 +1,4 @@
-import my_lib from './out/mylib.mjs';
+import my_lib from './dist/mylib.mjs';
 
 console.log('Initializing wasm module...');
 const moduleInstance = await my_lib();
