@@ -89,3 +89,13 @@ void fxRunLoop(txMachine* the)
 	}
 	fxCheckUnhandledRejections(the, 1);
 }
+
+txUnsigned fxGetCurrentMeter(txMachine* the)
+{
+	return the->meterIndex;
+}
+
+void fxSetCurrentMeter(txMachine* the, txUnsigned value)
+{
+	the->meterIndex = value;
+}

@@ -276,7 +276,13 @@ Side note: I discovered the `SINGLE_FILE` emscripten option which builds the WAS
 
 Oh but I don't have optimization enabled. With `-Os` optimization, it's `1,423kB`, which is quite a lot better. Also it loads and runs significantly faster now.
 
+-----
 
+I think the next step is to actually run the machine.
+
+-----
+
+It doesn't work. It says it's throwing a JavaScript exception but the exception is undefined.
 
 
 

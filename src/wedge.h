@@ -28,3 +28,11 @@ extern void fxEndMetering(xsMachine* the);
 	fxRunLoop(_THE)
 
 mxImport void fxRunLoop(xsMachine* the);
+
+#define xsGetCurrentMeter(_THE) \
+	fxGetCurrentMeter(_THE)
+#define xsSetCurrentMeter(_THE, _VALUE) \
+	fxSetCurrentMeter(_THE, _VALUE)
+
+xsUnsignedValue fxGetCurrentMeter(xsMachine* the);
+void fxSetCurrentMeter(xsMachine* the, xsUnsignedValue value);
