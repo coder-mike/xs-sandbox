@@ -1,0 +1,12 @@
+{
+  "files.associations": {
+    "*.mvms": "javascript",
+    "*.evm": "c",
+    "jsnap.h": "c",
+    "xs.h": "c",
+    "jsnap_platform.h": "c",
+    "xsall.h": "c",
+    "xscommon.h": "c",
+    "xsplatform.h": "c"
+  }
+}

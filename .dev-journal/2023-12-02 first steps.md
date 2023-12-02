@@ -210,3 +210,40 @@ By the way, in Moddable I'm on commit `e95cde090ea079e79779246eea8611b0f8628cd4`
 The WASM file is 20kb 😂. Of course that means it's optimized away all Moddable's code.
 
 ----
+
+Ok, so the next step is actually to invoke XS.
+
+----
+
+I don't know why, but it seems XS has a *ton* of signature conflicts between the signatures in `xs.h` and in `xsAll.h` (and its imports such as `xsCommon.h`) such as the following:
+
+```
+moddable/xs/sources\xsCommon.h:471:19: error: conflicting types for 'fxIntegerToString'
+  471 | mxExport txString fxIntegerToString(void* dtoa, txInteger theValue, txString theBuffer, txSize theSize);
+      |                   ^
+moddable/xs/includes\xs.h:1513:24: note: previous declaration is here
+ 1513 | mxImport xsStringValue fxIntegerToString(xsMachine*, xsIntegerValue, xsStringValue, xsIntegerValue);
+```
+
+It's not clear at all how `dtoa` is meant to be related to `xsMachine`.
+
+There's too many of these for me to go through them. I mean, I could, but it would take a while and it's throw-away changes because if I pull the source again at a later stage then I'll lose my changes. And I have no confidence in how these are meant to be resolved.
+
+I'm going to just resolve this by bringing in the few declarations I need from xsAll.
+
+----
+
+Urgh. This strategy isn't working. There are *SO* many things that need declarations from xsAll. For example, `mxPushUndefined` is in `xsAll.h`. When I copy it across, it depends on access to the stack which is also not available through `xs.h`.
+
+By the way, it seems to me that `xs.h` is the public interface and `xsAll.h` is the private interface.
+
+Ok, so I'm going to try something a bit different. Clearly XS itself tends not to import `xs.h` otherwise the inconsistencies would show up everywhere. So I think that units in the program can basically only import one or the other but not both. I will commit my work-in-progress on this failed port and then try something like this:
+
+- The `wedge.c` unit will be entirely an "internal" unit, importing `xsAll.h` internally so it has all of those mechanics.
+- The `wedge.h` header be agnostic of `xs.h`/`xsAll.h` (it won't import either)
+
+------
+
+Ok, finally, it's building and able to call `initMachine` and do the run loop. The WASM file is 3MB. Holy shit that's big. I'm curious how big the C build would be.
+
+To get it working, I needed to copy in a lot of the `xsnapPlatform.c`.

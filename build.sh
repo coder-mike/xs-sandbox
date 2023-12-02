@@ -4,7 +4,8 @@ XS_DIR=moddable/xs
 MODULES_DIR=moddable/modules
 
 emcc \
-  $SRC_DIR/glue.c \
+  $SRC_DIR/jsnap.c \
+  $SRC_DIR/wedge.c \
   $SRC_DIR/jsnap_platform.c \
   $XS_DIR/sources/xsAll.c \
   $XS_DIR/sources/xsAPI.c \
@@ -58,10 +59,7 @@ emcc \
   -fno-common \
 	-DINCLUDE_XSPLATFORM \
   -DXSPLATFORM=\"jsnap_platform.h\" \
-	-DmxLockdown=1 \
 	-DmxMetering=1 \
-	-DmxDebug=1 \
-	-UmxInstrument \
 	-DmxNoConsole=1 \
 	-DmxBoundsCheck=1 \
 	-DmxParse=1 \
@@ -83,3 +81,5 @@ emcc \
   -s EXPORTED_FUNCTIONS='["_process_message", "_malloc", "_free"]'
 
 
+# -DmxDebug=1 \
+# -UmxInstrument \
