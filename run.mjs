@@ -1,6 +1,9 @@
 import my_lib from './out/mylib.mjs';
 
+console.log('Initializing wasm module...');
 const moduleInstance = await my_lib();
+
+console.log('Calling exported function...');
 
 
 // Assuming Module is the Emscripten module

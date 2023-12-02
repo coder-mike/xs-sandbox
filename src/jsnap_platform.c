@@ -8,11 +8,6 @@
 #include "xsScript.h"
 #include "xsSnapshot.h"
 
-// TODO
-#ifndef mxReserveChunkSize
-	#define mxReserveChunkSize 1024 * 1024 * 1024
-#endif
-
 
 void fxAbort(txMachine* the, int status)
 {
@@ -111,9 +106,8 @@ void fxCreateMachinePlatform(txMachine* the)
 	the->connection = mxNoSocket;
 #endif
 #endif
-  // TODO
-	size_t GB = 1024 * 1024 * 1024;
-	the->allocationLimit = 2 * GB;
+	size_t MB = 1024 * 1024;
+	the->allocationLimit = 256 * MB;
 }
 
 static void adjustSpaceMeter(txMachine* the, txSize theSize)
@@ -138,65 +132,14 @@ void fxFreeSlots(txMachine* the, void* theSlots)
 	c_free(theSlots);
 }
 
-static txSize gxPageSize = 0;
-
-static txSize fxRoundToPageSize(txMachine* the, txSize size)
-{
-	txSize modulo;
-	if (!gxPageSize) {
-#if mxWindows
-		SYSTEM_INFO info;
-		GetSystemInfo(&info);
-		gxPageSize = (txSize)info.dwAllocationGranularity;
-#else
-		gxPageSize = getpagesize();
-#endif
-	}
-	modulo = size & (gxPageSize - 1);
-	if (modulo)
-		size = fxAddChunkSizes(the, size, gxPageSize - modulo);
-	return size;
-}
-
 void* fxAllocateChunks(txMachine* the, txSize size)
 {
-	txByte* base;
-	txByte* result;
-	adjustSpaceMeter(the, size);
-	if (the->firstBlock) {
-		base = (txByte*)(the->firstBlock);
-		result = (txByte*)(the->firstBlock->limit);
-	}
-	else
-#if mxWindows
-		base = result = VirtualAlloc(NULL, mxReserveChunkSize, MEM_RESERVE, PAGE_READWRITE);
-#else
-		base = result = mmap(NULL, mxReserveChunkSize, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
-#endif
-	if (result) {
-		txSize current = (txSize)(result - base);
-		size = fxAddChunkSizes(the, current, size);
-		current = fxRoundToPageSize(the, current);
-		size = fxRoundToPageSize(the, size);
-#if mxWindows
-		if (!VirtualAlloc(base + current, size - current, MEM_COMMIT, PAGE_READWRITE))
-#else
-		if (size > mxReserveChunkSize)
-			result = NULL;
-		else if (mprotect(base + current, size - current, PROT_READ | PROT_WRITE))
-#endif
-			result = NULL;
-	}
-	return result;
+	return c_malloc(size);
 }
 
 void fxFreeChunks(txMachine* the, void* theChunks)
 {
-#if mxWindows
-	VirtualFree(theChunks, 0, MEM_RELEASE);
-#else
-	munmap(theChunks, mxReserveChunkSize);
-#endif
+  c_free(theChunks);
 }
 
 

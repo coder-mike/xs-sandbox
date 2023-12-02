@@ -246,4 +246,37 @@ Ok, so I'm going to try something a bit different. Clearly XS itself tends not t
 
 Ok, finally, it's building and able to call `initMachine` and do the run loop. The WASM file is 3MB. Holy shit that's big. I'm curious how big the C build would be.
 
-To get it working, I needed to copy in a lot of the `xsnapPlatform.c`.
+To get it working, I needed to copy in a lot of the `xsnapPlatform.c`. It took many hours in total to get it working, even though I didn't need to write the platform code myself.
+
+Having done it, I'm almost surprised that it worked.
+
+Anyway. The next step is to run it.
+
+---
+
+Ok, I get an OOM. Looks like I can add `-sALLOW_MEMORY_GROWTH`.
+
+It was asking for 1,074,167,808 bytes. That's probably a bit much. The initial memory is currently `16,777,216`, which is much more reasonable.
+
+The other thing is that the chunk allocator I copied across was doing some complicated `mmap` thing, and I've changed it to just use malloc.
+
+---
+
+Wow! `Hello, World` is working again. It's not using the machine, but it's calling the machine initialization.
+
+It's very slow. I don't know what it's doing.
+
+It seems like the majority of the time is spent initializing the wasm module. That's a little concerning.
+
+Ah it's ok, it initializes much faster a second time. So there must be some once-off cost in loading and compiling the WASM.
+
+---
+
+Side note: I discovered the `SINGLE_FILE` emscripten option which builds the WASM into the library JS file. It doesn't feel much slower. The library is a bit bigger now, at `4,164kB`.
+
+Oh but I don't have optimization enabled. With `-Os` optimization, it's `1,423kB`, which is quite a lot better. Also it loads and runs significantly faster now.
+
+
+
+
+

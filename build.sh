@@ -74,11 +74,16 @@ emcc \
 	-I$XS_DIR/sources \
 	-I$SRC_DIR \
   -o $OUT_DIR/mylib.mjs \
-  -s SUPPORT_LONGJMP=1 \
-  -s MODULARIZE=1 \
-  -s EXPORT_ES6=1 \
-  -s EXPORTED_RUNTIME_METHODS=ccall,cwrap \
-  -s EXPORTED_FUNCTIONS='["_process_message", "_malloc", "_free"]'
+  -Os \
+  -sINITIAL_MEMORY=16777216 \
+  -sALLOW_MEMORY_GROWTH \
+  -sSUPPORT_LONGJMP=1 \
+  -sMODULARIZE=1 \
+  -sEXPORT_ES6=1 \
+  -sEXPORTED_RUNTIME_METHODS=ccall,cwrap \
+  -sSINGLE_FILE \
+  -sEXPORTED_FUNCTIONS='["_process_message", "_malloc", "_free"]' \
+  --use-preload-cache
 
 
 # -DmxDebug=1 \
