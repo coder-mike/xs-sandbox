@@ -11,6 +11,7 @@
 
 void fxAbort(txMachine* the, int status)
 {
+	printf("aborting...\n"); // TODO
 	switch (status) {
 	case XS_STACK_OVERFLOW_EXIT:
 		fxReport(the, "stack overflow\n");
@@ -110,13 +111,16 @@ void fxCreateMachinePlatform(txMachine* the)
 	the->allocationLimit = 256 * MB;
 }
 
+// TODO This may be flawed because freeing space doesn't seem to reduce the space meter
 static void adjustSpaceMeter(txMachine* the, txSize theSize)
 {
+	printf("adjustSpaceMeter: %i\n", theSize); // TODO
 	size_t previous = the->allocatedSpace;
 	the->allocatedSpace += theSize;
 	if (the->allocatedSpace > the->allocationLimit ||
 		// overflow?
 		the->allocatedSpace < previous) {
+		printf("not enough memory: %zu > %zu\n", the->allocatedSpace, the->allocationLimit); // TODO
 		fxAbort(the, XS_NOT_ENOUGH_MEMORY_EXIT);
 	}
 }
@@ -142,7 +146,7 @@ void fxFreeChunks(txMachine* the, void* theChunks)
   c_free(theChunks);
 }
 
-
+// TODO: Unused?
 txScript* fxLoadScript(txMachine* the, txString path, txUnsigned flags)
 {
 	txParser _parser;
@@ -188,6 +192,7 @@ txScript* fxLoadScript(txMachine* the, txString path, txUnsigned flags)
 	return script;
 }
 
+// TODO: Unused?
 void fxLoadModule(txMachine* the, txSlot* module, txID moduleID)
 {
 	char path[C_PATH_MAX];
@@ -207,7 +212,7 @@ void fxLoadModule(txMachine* the, txSlot* module, txID moduleID)
 	}
 }
 
-
+// TODO: Unused?
 txID fxFindModule(txMachine* the, txSlot* realm, txID moduleID, txSlot* slot)
 {
 	char name[C_PATH_MAX];

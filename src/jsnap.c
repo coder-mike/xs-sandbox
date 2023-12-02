@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 static const int meteringLimit = 1000000000; // TODO
-static const int meteringInterval = 1000; // TODO
+static const int meteringInterval = 1; // TODO
 static const int parserBufferSize = 8192 * 1024;
 
 static xsMachine* machine;
@@ -17,10 +17,12 @@ void initMachine();
 
 static xsBooleanValue meteringCallback(xsMachine* the, xsUnsignedValue index)
 {
- if (index > meteringLimit) {
-  return 0;
- }
- return 1;
+  printf("Metering callback\n");
+  if (index > meteringLimit) {
+    printf("Metering limit hit\n");
+    return 0;
+  }
+  return 1;
 }
 
 /**
@@ -63,7 +65,7 @@ uint8_t* process_message(uint8_t* buffer, size_t size, uint32_t* out_size) {
 
   xsBeginMetering(machine, meteringCallback, meteringInterval);
   {
-    xsSetCurrentMeter(machine, 0);
+    xsSetCurrentMeter(machine, 10000);
     xsBeginHost(machine);
     {
       xsVars(3);
