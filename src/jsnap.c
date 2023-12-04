@@ -17,9 +17,9 @@ void initMachine();
 
 static xsBooleanValue meteringCallback(xsMachine* the, xsUnsignedValue index)
 {
-  printf("Metering callback\n");
+  printf("Metering callback: %u\n", index);
   if (index > meteringLimit) {
-    printf("Metering limit hit\n");
+    printf("Metering limit hit: %u (limit: %u)\n", index, meteringLimit);
     return 0;
   }
   return 1;
