@@ -446,3 +446,28 @@ Maybe the next step is to get debugging working in Emscripten so I can step thro
 
 Also there are a bunch of extra checks I can enable in emscripten. I'm going to enable those and see if it changes anything. (it didnt)
 
+--------
+
+2023-12-05 07:27 I've compiled with debug symbols and stepped in the browser, but it's not working. I seem to recall issues with debug symbols when I was doing the Microvium WASM library.
+
+I'm trying various combinations of compiler flags and directory changes.
+
+Ok, it's working.
+
+I'm not 100% sure what fixed it:
+
+- I think that at some point I switched from naming the output directory `out` to `dist` but then got confused because there were some old files sticking around (the local web server had a lock on them) and I may have been looking at the wrong ones.
+- I've added flags `-g3` and `-fdebug-compilation-dir=.` to both the compiler and linker. Not sure if one or both uses either of these, but just added on both to be sure.
+- I compiled the output to just to into the project root `./` to avoid some kinds of directory issues.
+
+Now I'm going to try output into the `dist` folder and see if it still debugs.
+
+It doesn't seem to. I'm going to keep it in the dist folder and change the arg to `-fdebug-compilation-dir=..`.
+
+Ok, yes, I can see that now it's loading symbols. In the console in the browser, it says:
+
+```
+Initializing wasm module...
+[C/C++ DevTools Support (DWARF)] Loading debug symbols for http://localhost:3000/dist/mylib.wasm...
+[C/C++ DevTools Support (DWARF)] Loaded debug symbols for http://localhost:3000/dist/mylib.wasm, found 261 source file(s)
+```

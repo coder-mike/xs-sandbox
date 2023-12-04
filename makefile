@@ -84,7 +84,9 @@ CFLAGS := -fno-common \
           -I$(SRC_DIR) \
           -O0
 
-# -DmxNoConsole=1 \
+CFLAGS += -g3
+CFLAGS += -fdebug-compilation-dir=..
+# CFLAGS += -DmxNoConsole=1
 
 # Linker Flags
 LDFLAGS := -sINITIAL_MEMORY=1048576 \
@@ -96,14 +98,18 @@ LDFLAGS := -sINITIAL_MEMORY=1048576 \
            -sMODULARIZE=1 \
            -sEXPORT_ES6=1 \
            -sEXPORTED_RUNTIME_METHODS=ccall,cwrap \
-           -sSINGLE_FILE \
            -sEXPORTED_FUNCTIONS='["_process_message", "_malloc", "_free"]' \
            --use-preload-cache
+
+LDFLAGS += -g3
+LDFLAGS += -fdebug-compilation-dir=..
+# LDFLAGS += -sSINGLE_FILE
 
 # Makefile Rules
 all: $(OUT_DIR)/mylib.mjs
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(XS_DIR)/sources/%.c | $(OBJ_DIR)
@@ -119,6 +125,7 @@ $(OBJ_DIR)/%.o: $(MODULES_DIR)/data/base64/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OUT_DIR)/mylib.mjs: $(OBJECTS)
+	@mkdir -p $(OUT_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 
 $(OBJ_DIR):
