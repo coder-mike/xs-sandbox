@@ -284,5 +284,165 @@ I think the next step is to actually run the machine.
 
 It doesn't work. It says it's throwing a JavaScript exception but the exception is undefined.
 
+---
 
+I've added various logging but unable to really dig into it. I can't see a way around this other than to create the project in VC++ and actually step through it in a debugger.
+
+----
+
+*sigh*. the project uses `sys/time.h` and `arpa/inet.h` and other posix libraries, which VS doesn't have. So just to debug this I'm going to need to make the platform file portable. Hopefully that's not too difficult. That's really taken the wind out of my sails.
+
+----
+
+2023-12-03 16:39 That took a long time to work through all the errors. I'm now finally launching the debugger.
+
+Ok, for whatever reason, in the case of a type error, if you don't enable debugging then instead of throwing an exception it will just jump to the catch handler.
+
+When I enable debug, I get an error on this line `txSlot* scope = scope;`. I'm changing it to `= 0`.
+
+Ok, I think I misunderstood the code. It will jump anyway, because of course it does. The exception is still "undefined".
+
+Ok, I think maybe the issue is my variable name. The macros seem to assume that the machine is accessible with the name "the".
+
+Oh actually it looks like `xsBeginHost` sets up the `the` variable.
+
+When I call `fxToString(xsException)`, it thinks that the slot kind is zero which is undefined. But I clearly see that earlier it's setting it to 0xa which is a reference.
+
+I'm going to try look at the addresses.
+
+Ok, the apparent size of a slot changes. Yes, that will cause a problem.
+
+The public interface is using this definition:
+
+```c
+struct xsSlotRecord {
+	void* data[4];
+};
+```
+
+Yikes, that's a weird definition. 4 pointers. Anyway, that's 16 bytes.
+
+The internal structure is this:
+
+```c
+struct sxSlot {
+	txSlot* next;
+#if mx32bitID
+	#if mxBigEndian
+		union {
+			struct {
+				txID ID;
+				txS2 dummy;
+				txFlag flag;
+				txKind kind;
+			};
+			txS8 ID_FLAG_KIND;
+		};
+	#else
+		union {
+			struct {
+				txKind kind;
+				txFlag flag;
+				txS2 dummy;
+				txID ID;
+			};
+			txS8 KIND_FLAG_ID;
+		};
+	#endif
+#else
+	#if mxBigEndian
+		union {
+			struct {
+				txID ID;
+				txFlag flag;
+				txKind kind;
+			};
+			txS4 ID_FLAG_KIND;
+		};
+	#else
+		union {
+			struct {
+				txKind kind;
+				txFlag flag;
+				txID ID;
+			};
+			txS4 KIND_FLAG_ID;
+		};
+	#endif
+	#if INTPTR_MAX == INT64_MAX
+		txS4 dummy;
+	#endif
+#endif
+	txValue value;
+};
+```
+
+The size of this is apparently 24 bytes. I'm compiling for 32-bit platform by the way.
+
+Ok, I think it's the value `txS8 KIND_FLAG_ID;` which is an 8-byte value that follows a 32-bit value, but there's nothing to mark the struct as packed.
+
+---
+
+2023-12-04 07:27 I added the compiler settings in VS to automatically pack structures to 4-byte alignment. But then I get errors in winnt.h because it asserts "Windows headers require the default packing option. Changing this can lead to memory corruption. This diagnostic can be disabled by building with WINDOWS_IGNORE_PACKING_MISMATCH defined."
+
+I don't know if I'm really going to encounter corruption issues. I'm going to give the flag "WINDOWS_IGNORE_PACKING_MISMATCH".
+
+Oh actually with 4-byte packing, the size is 20 bytes instead of 24, but still not 16. Oh actually even with 1 byte packing.
+
+Fuck I don't understand this code. I recall from memory that the xs slot size is 16 bytes on a 32-bit machine, and I can see the definition of `xsSlotRecord` confirms that, with the size being 4 machine words which is 16 bytes. But then their convoluted `sxSlot` type essentially boils down to this:
+
+```c
+struct sxSlot {
+	txSlot* next;
+	union {
+		struct {
+			txKind kind;
+			txFlag flag;
+			txS2 dummy;
+			txID ID;
+		};
+		txS8 KIND_FLAG_ID;
+	};
+	txValue value;
+};
+```
+
+The middle union clearly takes at least 8 bytes, because of the `txS8`. The `next` must be 32 bits. But then `value` here takes up 8 bytes!
+
+Ah, I can see the issue. The `KIND_FLAG_ID` field either takes 4 or 8 bytes. It takes 8 bytes if `mx32bitID` is true and 4 bytes otherwise. That seems bloody backwards to me.
+
+Anyway, I inherited `mx32bitID` from the xsnap platform code. I'm removing it now.
+
+Fuck what a long road, but now the sizes match and I can see `Result of eval: Hello, from XS!` so the script is now evaluating, at least in VS. Let me try in emscripten as well.
+
+2023-12-04 07:54 Ok, the WASM run isn't working. It's a different failure condition to last time. It's now repeatedly saying `adjustSpaceMeter: 1024` and eventually failing with `RuntimeError: table index is out of bounds`.
+
+Given that I had it working in VS, I have some confidence that my usage code is ok and it's the platform setup that's wrong. I'll start by checking the type sizes.
+
+2023-12-04 08:05 The slot sizes match and are both 16 bits. I guess I don't have much choice but to add logging to see where it fails.
+
+2023-12-04 08:50 The hardest part about this is that it's non-deterministic. It's like there's corruption but it's random. Incredibly hard to pin down. The WASM itself should be deterministic, so I assume the issue is that the inserted print statements are breaking things.
+
+I'm going to try try disable optimization and see what happens.
+
+2023-12-04 08:56 When I disable optimization, it gets a lot further and then aborts for some reason. I'm going to remove all my old debug prints since they doing help at all with the new abort position.
+
+2023-12-04 09:02 Ok, it seems to be aborting due to an apparent stack overflow. I kinda doubt that it's really stack-overflowing.
+
+It's in `fxCheckCStack` that it's detecting the overflow. That function is called from a lot of places so it's not immediately obvious where I should look next.
+
+The overflow is happing during the `xsVar(1) = xsCall1(xsGlobal, xsID("eval"), xsVar(0))` call.
+
+Just to confirm, I bumped up the stack count by 8x and it still overflows. But I know in VS it doesn't overflow even at the current count, so there is something else wrong.
+
+What kind of problem would cause the symptoms we're seeing?
+
+- There is an inherent flaw in the engine, which is only uncovered because the WASM target is sufficiently unusual.
+- There's something wrong with my port configuration that's causing something to be misaligned or something to that effect. Or mismatched endianess.
+
+I can't see anything obvious. The slot size appears correct. The endianness is marked as little endian, the same way in Visual Studio and Emscripten (through the `#define`).
+
+Maybe the next step is to get debugging working in Emscripten so I can step through it and see where it fails. Maybe it will become obvious. The documentation does say that emscripten can produce debug symbols. https://emscripten.org/docs/porting/Debugging.html
+
+Also there are a bunch of extra checks I can enable in emscripten. I'm going to enable those and see if it changes anything. (it didnt)
 

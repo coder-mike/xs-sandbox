@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\moddable">
+      <UniqueIdentifier>{1e202451-7dad-4676-8f3c-4ffe9c19b596}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\jsnap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\jsnap_platform.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\wedge.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsAll.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsAPI.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsArguments.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsArray.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsAtomics.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsBigInt.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsBoolean.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsCode.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsCommon.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsDataView.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsDate.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsDebug.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsDefaults.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsdtoa.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsError.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsFunction.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsGenerator.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsGlobal.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsJSON.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsLexical.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsLockdown.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsMapSet.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsMarshall.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsMath.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsmc.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsMemory.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsModule.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsNumber.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsObject.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsPlatforms.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsProfile.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsPromise.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsProperty.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsProxy.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsre.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsRegExp.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsRun.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsScope.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsScript.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsSnapshot.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsSourceMap.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsString.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsSymbol.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsSyntaxical.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsTree.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\moddable\xs\sources\xsType.c">
+      <Filter>Source Files\moddable</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\jsnap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\jsnap_platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\wedge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

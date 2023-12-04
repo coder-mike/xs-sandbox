@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{511d6cff-0a1c-47e7-b8c1-858f82b67e7f}</ProjectGuid>
+    <RootNamespace>vcppdebugprogram</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Projects\js-snapshotting\src;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;INCLUDE_XSPLATFORM;XSPLATFORM="jsnap_platform.h";mxMetering=1;mxNoConsole=1;mxBoundsCheck=1;mxParse=1;mxRun=1;mxSloppy=1;mxSnapshot=1;mxRegExpUnicodePropertyEscapes=1;mxStringNormalize=1;mxMinusZero=1;mxDebug=1;WINDOWS_BUILD=1;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Projects\js-snapshotting\moddable\xs\includes;C:\Projects\js-snapshotting\src;C:\Projects\js-snapshotting\moddable\xs\sources;C:\Projects\js-snapshotting\moddable\xs\platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4703;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\moddable\xs\sources\xsAll.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsAPI.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsArguments.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsArray.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsAtomics.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsBigInt.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsBoolean.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsCode.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsCommon.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsDataView.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsDate.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsDebug.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsDefaults.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsdtoa.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsError.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsFunction.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsGenerator.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsGlobal.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsJSON.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsLexical.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsLockdown.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsMapSet.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsMarshall.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsMath.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsmc.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsMemory.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsModule.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsNumber.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsObject.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsPlatforms.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsProfile.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsPromise.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsProperty.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsProxy.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsre.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsRegExp.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsRun.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsScope.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsScript.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsSnapshot.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsSourceMap.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsString.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsSymbol.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsSyntaxical.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsTree.c" />
+    <ClCompile Include="..\moddable\xs\sources\xsType.c" />
+    <ClCompile Include="..\src\jsnap.c" />
+    <ClCompile Include="..\src\jsnap_platform.c" />
+    <ClCompile Include="..\src\wedge.c" />
+    <ClCompile Include="main.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\jsnap.h" />
+    <ClInclude Include="..\src\jsnap_platform.h" />
+    <ClInclude Include="..\src\wedge.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

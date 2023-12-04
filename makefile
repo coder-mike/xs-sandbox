@@ -26,6 +26,7 @@ SOURCES := \
   $(XS_DIR)/sources/xsDate.c \
   $(XS_DIR)/sources/xsDebug.c \
   $(XS_DIR)/sources/xsDefaults.c \
+  $(XS_DIR)/sources/xsdtoa.c \
   $(XS_DIR)/sources/xsError.c \
   $(XS_DIR)/sources/xsFunction.c \
   $(XS_DIR)/sources/xsGenerator.c \
@@ -36,6 +37,7 @@ SOURCES := \
   $(XS_DIR)/sources/xsMapSet.c \
   $(XS_DIR)/sources/xsMarshall.c \
   $(XS_DIR)/sources/xsMath.c \
+  $(XS_DIR)/sources/xsmc.c \
   $(XS_DIR)/sources/xsMemory.c \
   $(XS_DIR)/sources/xsModule.c \
   $(XS_DIR)/sources/xsNumber.c \
@@ -45,6 +47,7 @@ SOURCES := \
   $(XS_DIR)/sources/xsPromise.c \
   $(XS_DIR)/sources/xsProperty.c \
   $(XS_DIR)/sources/xsProxy.c \
+  $(XS_DIR)/sources/xsre.c \
   $(XS_DIR)/sources/xsRegExp.c \
   $(XS_DIR)/sources/xsRun.c \
   $(XS_DIR)/sources/xsScope.c \
@@ -55,10 +58,7 @@ SOURCES := \
   $(XS_DIR)/sources/xsSymbol.c \
   $(XS_DIR)/sources/xsSyntaxical.c \
   $(XS_DIR)/sources/xsTree.c \
-  $(XS_DIR)/sources/xsType.c \
-  $(XS_DIR)/sources/xsdtoa.c \
-  $(XS_DIR)/sources/xsre.c \
-  $(XS_DIR)/sources/xsmc.c
+  $(XS_DIR)/sources/xsType.c
 
 # Object Files
 OBJECTS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(notdir $(SOURCES)))
@@ -68,7 +68,6 @@ CFLAGS := -fno-common \
           -DINCLUDE_XSPLATFORM \
           -DXSPLATFORM=\"jsnap_platform.h\" \
           -DmxMetering=1 \
-          -DmxNoConsole=1 \
           -DmxBoundsCheck=1 \
           -DmxParse=1 \
           -DmxRun=1 \
@@ -77,15 +76,22 @@ CFLAGS := -fno-common \
           -DmxRegExpUnicodePropertyEscapes=1 \
           -DmxStringNormalize=1 \
           -DmxMinusZero=1 \
+          -DmxDebug=1 \
+          -DWASM_BUILD=1 \
           -I$(XS_DIR)/includes \
           -I$(XS_DIR)/platforms \
           -I$(XS_DIR)/sources \
           -I$(SRC_DIR) \
-          -Os
+          -O0
+
+# -DmxNoConsole=1 \
 
 # Linker Flags
-LDFLAGS := -sINITIAL_MEMORY=16777216 \
+LDFLAGS := -sINITIAL_MEMORY=1048576 \
            -sALLOW_MEMORY_GROWTH \
+           -sSTACK_OVERFLOW_CHECK=1 \
+           -sASSERTIONS=2 \
+           -sSAFE_HEAP=1 \
            -sSUPPORT_LONGJMP=1 \
            -sMODULARIZE=1 \
            -sEXPORT_ES6=1 \

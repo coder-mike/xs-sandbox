@@ -1,2 +1,8 @@
 - [ ] Test metering
 - [ ] Check memory usage
+- [ ] Proper submodule
+- [ ] Add back textdecoder and textencoder
+- [ ] Enable mxDebug (to get line numbers on exceptions, if we can)
+- [ ] Enable optimization (and debug issues)
+
+

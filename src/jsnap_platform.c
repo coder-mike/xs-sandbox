@@ -1,4 +1,3 @@
-#include <sys/time.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -101,33 +100,25 @@ void fxAbort(txMachine* the, int status)
 
 void fxCreateMachinePlatform(txMachine* the)
 {
-#ifdef mxDebug
-#ifdef mxInstrument
-#else
-	the->connection = mxNoSocket;
-#endif
-#endif
+//#ifdef mxDebug
+//#ifdef mxInstrument
+//#else
+//	the->connection = mxNoSocket;
+//#endif
+//#endif
 	size_t MB = 1024 * 1024;
 	the->allocationLimit = 256 * MB;
+
+	printf("Size of txSlot: %lu\n", sizeof(txSlot)); // TODO
 }
 
-// TODO This may be flawed because freeing space doesn't seem to reduce the space meter
-static void adjustSpaceMeter(txMachine* the, txSize theSize)
+void fxDeleteMachinePlatform(txMachine* the)
 {
-	printf("adjustSpaceMeter: %i\n", theSize); // TODO
-	size_t previous = the->allocatedSpace;
-	the->allocatedSpace += theSize;
-	if (the->allocatedSpace > the->allocationLimit ||
-		// overflow?
-		the->allocatedSpace < previous) {
-		printf("not enough memory: %zu > %zu\n", the->allocatedSpace, the->allocationLimit); // TODO
-		fxAbort(the, XS_NOT_ENOUGH_MEMORY_EXIT);
-	}
 }
 
 txSlot* fxAllocateSlots(txMachine* the, txSize theCount)
 {
-	adjustSpaceMeter(the, theCount * sizeof(txSlot));
+	printf("fxAllocateSlots: %i * %lu\n", theCount, sizeof(txSlot));
 	return (txSlot*)c_malloc(theCount * sizeof(txSlot));
 }
 
@@ -265,3 +256,28 @@ void fxQueuePromiseJobs(txMachine* the)
 {
 	the->promiseJobs = 1;
 }
+
+void fxConnect(txMachine* the) {
+
+}
+
+void fxDisconnect(txMachine* the) {
+
+}
+
+txBoolean fxIsConnected(txMachine* the) {
+	return 0;
+}
+
+txBoolean fxIsReadable(txMachine* the) {
+	return 0;
+}
+
+void fxReceive(txMachine* the) {
+
+}
+
+void fxSend(txMachine* the, txBoolean more) {
+
+}
+
