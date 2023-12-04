@@ -68,7 +68,6 @@ CFLAGS := -fno-common \
           -DINCLUDE_XSPLATFORM \
           -DXSPLATFORM=\"jsnap_platform.h\" \
           -DmxMetering=1 \
-          -DmxBoundsCheck=1 \
           -DmxParse=1 \
           -DmxRun=1 \
           -DmxSloppy=1 \
@@ -88,12 +87,14 @@ CFLAGS += -g3
 CFLAGS += -fdebug-compilation-dir=..
 # CFLAGS += -DmxNoConsole=1
 
+# The bounds checking seems to enable `fxCheckCStack` which doesn't work in WASM
+CFLAGS += -DmxBoundsCheck=0
+
 # Linker Flags
 LDFLAGS := -sINITIAL_MEMORY=1048576 \
            -sALLOW_MEMORY_GROWTH \
            -sSTACK_OVERFLOW_CHECK=1 \
            -sASSERTIONS=2 \
-           -sSAFE_HEAP=1 \
            -sSUPPORT_LONGJMP=1 \
            -sMODULARIZE=1 \
            -sEXPORT_ES6=1 \
@@ -103,6 +104,7 @@ LDFLAGS := -sINITIAL_MEMORY=1048576 \
 
 LDFLAGS += -g3
 LDFLAGS += -fdebug-compilation-dir=..
+# LDFLAGS += -sSAFE_HEAP=1
 # LDFLAGS += -sSINGLE_FILE
 
 # Makefile Rules

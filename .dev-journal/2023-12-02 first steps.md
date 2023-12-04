@@ -471,3 +471,36 @@ Initializing wasm module...
 [C/C++ DevTools Support (DWARF)] Loading debug symbols for http://localhost:3000/dist/mylib.wasm...
 [C/C++ DevTools Support (DWARF)] Loaded debug symbols for http://localhost:3000/dist/mylib.wasm, found 261 source file(s)
 ```
+
+2023-12-05 07:55 The safe-heap stuff is getting in the way, so I'm going to disable that for the moment.
+
+`fxRunID` is very hard to debug. It takes about 30 seconds to step. Maybe because it's such a big function.
+
+Anyway, it seems to be crashing in `mxCheckCStack` right at the beginning of `fxRunID`. That's a pretty good place to be crashing.
+
+Debugging is not fantastic. When I add a Watch for `the->stackLimit`, it tells me `the->stackLimit: "~"`.
+
+Anyway, so the failing line so far is `(stack <= the->stackLimit)` -- it should be returning false but is returning true.
+
+The `stackLimit` is set in `xsMemory.c` in `fxAllocate`.
+
+Ah, interesting. It wasn't lying when it says this is the **C stack**. The implementation of `fCStackLimit` is:
+
+```c
+    char* result = C_NULL;
+		pthread_attr_t attrs;
+		pthread_attr_init(&attrs);
+		if (pthread_getattr_np(pthread_self(), &attrs) == 0) {
+    		void* stackAddr;
+   			size_t stackSize;
+			if (pthread_attr_getstack(&attrs, &stackAddr, &stackSize) == 0) {
+				result = (char*)stackAddr + (128 * 1024) + mxASANStackMargin;
+			}
+		}
+		pthread_attr_destroy(&attrs);
+		return result;
+```
+
+Ok, I should have read that more clearly. Of course I don't expect the C stack to behave the same way in WASM.
+
+It's a little bit annoying because the behavior is controlled by `mxBoundsCheck` which also checks for overflows using `fxOverflow`. But anyway, I'll disable this.
