@@ -795,3 +795,31 @@ https://nodejs.org/api/n-api.html#node_api_throw_syntax_error
 Why is it compiling WASM after the program's already finished?
 
 Let me see if I can use the debug stepping to find if anything runs on a timer or anything after the end of my script.
+
+In the debugger in the browser of course I'm getting all sorts of crap running after the end of my script (chrome extensions). Maybe I'll try run in node in the debugger.
+
+So on the last console.log line (`console.log('done');`) I put a breakpoint, and then repeatedly used "step-into" to see if anything came after it, but the debugger didn't stop again. But after a delay, I did see `Process exited with code 2147483651`.
+
+I thought that that would step into any further code, but perhaps I'm mistaken because I added this before the end:
+
+```js
+setTimeout(() => {
+  console.log('something else')
+}, 1000);
+```
+
+and the debugger never got here.
+
+So another strategy, I'm just going to look in `mylib.mjs` for anything that might schedule future work.
+
+Ok, actually, I opened a guest browser window and did the step-into thing and I can see it step into the timeout just fine but then it doesn't step into anything else, so I think I'm fairly convinced that the library doesn't schedule any further work, at least on the browser. It's still possible that it does things differently in node.js.
+
+Another thing that could be happening is that the GC is triggered after some time in node.js. I don't know why the GC would cause compilation of a WASM module, so it doesn't really make sense. But it is something that could be scheduled that is not a timer or promise. To test this theory, I'm going to see if I can set a timer to call the test routine again later. This should at least hold the wasm module in memory and prevent it from being collected. The failure is normally 10 seconds after completion, so I'll do this with a 20s timeout.
+
+Ok, that didn't work.
+
+Now I'm going to try with the `testProcessMessage` only in the timer. The theory this tests is that it's the module initialization itself which starts the 10 second self-destruct.
+
+Ok, what happened is that it took 20 seconds before running `testProcessMessage` and then another 10 seconds before dying.
+
+Ok, finally I'm going to just upgrade to node 20.10.0 (x64) and see if that changes/fixes anything.

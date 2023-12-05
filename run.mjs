@@ -77,6 +77,15 @@ function testProcessMessage() {
 }
 
 // Run the test
-testProcessMessage();
+// testProcessMessage();
 
+setTimeout(() => {
+  console.log('something else')
+}, 1000);
+Promise.resolve().then(() => {
+  console.log('promise')
+});
+setTimeout(() => {
+  testProcessMessage();
+}, 20_000);
 console.log('done');
