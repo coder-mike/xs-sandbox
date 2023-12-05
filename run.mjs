@@ -31,11 +31,15 @@ function processMessage(inputBuffer) {
         throw new Error("Error in process_message");
     }
 
+    console.log('reading output')
+
     // Read the output size
     let outputSize = moduleInstance.HEAPU32[outputSizePtr / 4];
 
     // Create a new Uint8Array from the output data
-    let resultBuffer = new Uint8Array(moduleInstance.HEAPU8.subarray(outputPtr, outputPtr + outputSize));
+    let resultBuffer = moduleInstance.HEAPU8.slice(outputPtr, outputPtr + outputSize);
+
+    console.log('freeing memory')
 
     // Free the allocated memory
     moduleInstance._free(inputPtr);
@@ -74,3 +78,5 @@ function testProcessMessage() {
 
 // Run the test
 testProcessMessage();
+
+console.log('done');

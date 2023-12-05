@@ -99,6 +99,7 @@ uint8_t* process_message(uint8_t* buffer, size_t size, uint32_t* out_size) {
     xsEndHost(machine);
   }
   xsEndMetering(machine);
+  printf("end metering...\n");
 
 
   return out_buffer;

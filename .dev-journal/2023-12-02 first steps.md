@@ -640,3 +640,60 @@ I guess this is progress. I see `Result of eval: Hello, from XS!`. But now I als
 ```
 
 I tried compiling with 64x the stack size to confirm that it's not overflowing the stack here, but it didn't help.
+
+The error here says "WasmCompilationUnit::ExecuteFunctionCompilation", which strongly implies that this is not an issue execution but with compilation.
+
+Ok, actually it's getting past the `process_message` call.
+
+Oh, it works fine in the browser.
+
+I think one problem is that I'm using `subarray` to get the result when I should be using slice.
+
+That didn't make a difference.
+
+Ok, so I have a "done" at the end of `run.mjs` and I can see that it's called before everything crashes. Quite a while before.
+
+Ok, interesting. When I enable all the emscripten checks, I get this `alignment fault`:
+
+```
+begin metering...
+begin host...
+host vars...
+begin try...
+Script prepared for eval
+fxRunID 1
+Heap resize call from 1310720 to 2359296 took 0.07829999923706055 msecs. Success: true
+fxRunID 0
+Metering callback: 10005
+Aborted(alignment fault)
+file:///C:/Projects/js-snapshotting/dist/mylib.mjs:560
+ /** @suppress {checkTypes} */ var e = new WebAssembly.RuntimeError(what);
+                                       ^
+
+RuntimeError: Aborted(alignment fault)
+    at abort (file:///C:/Projects/js-snapshotting/dist/mylib.mjs:560:40)
+    at alignfault (file:///C:/Projects/js-snapshotting/dist/mylib.mjs:347:2)
+    at mylib.wasm.SAFE_HEAP_LOAD_i32_2_U_2 (wasm://wasm/mylib.wasm-0180dcee:wasm-function[2191]:0x349da4)
+    at mylib.wasm.fxRunID (wasm://wasm/mylib.wasm-0180dcee:wasm-function[1537]:0x2bae2e)
+    at invoke_viii (file:///C:/Projects/js-snapshotting/dist/mylib.mjs:4450:27)
+    at mylib.wasm.fxRunScript (wasm://wasm/mylib.wasm-0180dcee:wasm-function[1568]:0x2cbc0b)
+    at mylib.wasm.fx_eval (wasm://wasm/mylib.wasm-0180dcee:wasm-function[1006]:0x13ef7d)
+    at invoke_vi (file:///C:/Projects/js-snapshotting/dist/mylib.mjs:4483:27)
+    at mylib.wasm.fxRunID (wasm://wasm/mylib.wasm-0180dcee:wasm-function[1537]:0x25e562)
+    at mylib.wasm.fxRunCount (wasm://wasm/mylib.wasm-0180dcee:wasm-function[126]:0x1afc2)
+```
+
+And it actually tells me here that it's while it's in `fxRunID` while executing the script. I don't know if this is the same cause as the other failure, but it's worth considering.
+
+I'm not sure why, but when I run it in the browser then the second `fxRunID` is called `$fxRunID` and it doesn't give me the source location of the issue.
+
+I added an instruction counter inside `fxRunID` and I'm surprised it only gets to a count of 2 before failing. I suppose that's a good thing.
+
+It seems to be stopping on instruction code 83, which is apparently `XS_CODE_FILE`.
+
+It's incredibly slow to step.
+
+Possibly the reason why I don't have debug location information is because of the way switch and case is implemented.
+
+---------
+
