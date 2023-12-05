@@ -697,3 +697,101 @@ Possibly the reason why I don't have debug location information is because of th
 
 ---------
 
+2023-12-06 06:46 I swapped out the implementation of `switch` and `case` in the hope that I'd get debug information again, but it doesn't seem so. So anyway, I know that the issue is triggered in the `XS_CODE_FILE` instruction. I'll just use print statements to isolate it further.
+
+It appears to be happening right at the beginning of the instruction, in `count = mxRunID(1);`
+
+Ok, interesting. There's a macro definition here:
+
+```c
+#define mxRunS1(OFFSET) ((txS1*)mxCode)[OFFSET]
+#define mxRunU1(OFFSET) ((txU1*)mxCode)[OFFSET]
+#if mxBigEndian
+	#define mxRunS2(OFFSET) (((txS1*)mxCode)[OFFSET+0] << 8) | ((txU1*)mxCode)[OFFSET+1]
+	#define mxRunS4(OFFSET) (((txS1*)mxCode)[OFFSET+0] << 24) | (((txU1*)mxCode)[OFFSET+1] << 16) | (((txU1*)mxCode)[OFFSET+2] << 8) | ((txU1*)mxCode)[OFFSET+3]
+	#define mxRunU2(OFFSET) (((txU1*)mxCode)[OFFSET+0] << 8) | ((txU1*)mxCode)[OFFSET+1]
+#else
+	#if mxUnalignedAccess
+		#define mxRunS2(OFFSET) *((txS2*)(mxCode + OFFSET))
+		#define mxRunS4(OFFSET) *((txS4*)(mxCode + OFFSET))
+		#define mxRunU2(OFFSET) *((txU2*)(mxCode + OFFSET))
+	#else
+		#define mxRunS2(OFFSET) (((txS1*)mxCode)[OFFSET+1] << 8) | ((txU1*)mxCode)[OFFSET+0]
+		#define mxRunS4(OFFSET) (((txS1*)mxCode)[OFFSET+3] << 24) | (((txU1*)mxCode)[OFFSET+2] << 16) | (((txU1*)mxCode)[OFFSET+1] << 8) | ((txU1*)mxCode)[OFFSET+0]
+		#define mxRunU2(OFFSET) (((txU1*)mxCode)[OFFSET+1] << 8) | ((txU1*)mxCode)[OFFSET+0]
+	#endif
+#endif
+#ifdef mx32bitID
+	#define mxRunID(OFFSET) mxRunS4(OFFSET)
+#else
+	#define mxRunID(OFFSET) mxRunS2(OFFSET)
+#endif
+```
+
+According to some printf statements, the values currently used are these:
+
+```
+not mx32bitID
+mxUnalignedAccess
+not mxBigEndian
+```
+
+Ok, so that will need to be added to the port file, since I don't think WASM supports unaligned access. The direction of the definition of `mxUnalignedAccess` here seems to be that when its false, access must be aligned and so the code does extra steps to read the data in pieces.
+
+Ok, so I've added `-DmxUnalignedAccess=0` to the makefile and I'm rebuilding everything.
+
+Ok, that fixed the alignment problem, and the script appears to run to completion now, with all the emscripten checks in place. But I still get this error:
+
+```
+#
+# Fatal error in , line 0
+# Check failed: IdField::is_valid(id).
+#
+#
+#
+#FailureMessage Object: 000000AE3DDFE0C0
+ 1: 00007FF745DBAEFF node_api_throw_syntax_error+206127
+ 2: 00007FF745CD15DF v8::CTypeInfoBuilder<void>::Build+11951
+ 3: 00007FF746B39492 V8_Fatal+162
+ 4: 00007FF746B71F4A v8::internal::compiler::HeapConstantType::Value+666
+ 5: 00007FF746C257DA v8::internal::compiler::Graph::NewNodeUnchecked+58
+ 6: 00007FF746BCDDE2 v8::internal::compiler::MachineOperatorReducer::Int32Constant+6146
+ 7: 00007FF7462001DC v8::internal::wasm::BuildTFGraph+110092
+ 8: 00007FF7461E4D28 v8::internal::wasm::JumpTableAssembler::NopBytes+20904
+ 9: 00007FF7461E47CD v8::internal::wasm::JumpTableAssembler::NopBytes+19533
+10: 00007FF7461E72DF v8::internal::wasm::BuildTFGraph+7951
+11: 00007FF7461EB0BF v8::internal::wasm::BuildTFGraph+23791
+12: 00007FF7461E62CD v8::internal::wasm::BuildTFGraph+3837
+13: 00007FF7461E5589 v8::internal::wasm::BuildTFGraph+441
+14: 00007FF746BCA027 v8::internal::compiler::CompileWasmImportCallWrapper+10615
+15: 00007FF746201D1C v8::internal::wasm::WasmCompilationUnit::ExecuteFunctionCompilation+1324
+16: 00007FF746201725 v8::internal::wasm::WasmCompilationUnit::ExecuteCompilation+229
+17: 00007FF7461D5A8D v8::internal::wasm::CompileToNativeModule+4413
+18: 00007FF7461DBA5E v8::internal::wasm::CompilationState::New+7662
+19: 00007FF74694F260 v8::internal::SetupIsolateDelegate::SetupHeap+1437648
+20: 00007FF745CD3FAD X509_STORE_CTX_get_lookup_certs+813
+21: 00007FF745E0824D uv_poll_stop+557
+22: 00007FF746DC6880 v8::internal::compiler::ToString+146448
+23: 00007FFED0C87344 BaseThreadInitThunk+20
+24: 00007FFED0DC26B1 RtlUserThreadStart+33
+```
+
+That's a tricky one. Let me see what I can learn from the above:
+
+- `RtlUserThreadStart` probably tells us what thread the error is happening in. But I can't actually figure out if that's the main user thread or something else like a worker. Reading through the library that emscripten produces, I don't see anywhere that it creates a worker, so I have no reason to think that the user thread is anything but the main thread.
+
+- `wasm::CompileToNativeModule` looks like it's an error while compiling WASM. Since the WASM has already run to completion, that's a bit strange. I wonder if `mylib.mjs` is doing some asynchronous loading.
+
+- The last frame before `V8_Fatal` is `v8::internal::compiler::HeapConstantType::Value` which sounds like a pretty normal operation to me.
+
+Honestly, it looks like a bug in node.js to me. I'm on node v18.8.0. Let me perhaps look at using node 20.
+
+Actually, before I install that, let me do a little bit of debugging, because I would prefer this issue to be resolved on all host engines.
+
+N-API documentation says that `node_api_throw_syntax_error` does "This API throws a JavaScript SyntaxError with the text provided."
+
+https://nodejs.org/api/n-api.html#node_api_throw_syntax_error
+
+Why is it compiling WASM after the program's already finished?
+
+Let me see if I can use the debug stepping to find if anything runs on a timer or anything after the end of my script.

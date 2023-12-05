@@ -76,6 +76,7 @@ CFLAGS := -fno-common \
           -DmxStringNormalize=1 \
           -DmxMinusZero=1 \
           -DmxDebug=1 \
+          -DmxUnalignedAccess=0 \
           -DWASM_BUILD=1 \
           -I$(XS_DIR)/includes \
           -I$(XS_DIR)/platforms \
