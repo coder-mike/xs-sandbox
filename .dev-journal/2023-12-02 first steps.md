@@ -823,3 +823,20 @@ Now I'm going to try with the `testProcessMessage` only in the timer. The theory
 Ok, what happened is that it took 20 seconds before running `testProcessMessage` and then another 10 seconds before dying.
 
 Ok, finally I'm going to just upgrade to node 20.10.0 (x64) and see if that changes/fixes anything.
+
+2023-12-06 07:44 Ok, I have node v20.10.0 installed. Fingers crossed.
+
+Ok, interesting behavior. It doesn't crash, but it also isn't ending the program. I assume that I need to call some kind of close method.
+
+Oh, it did eventually stop on its own. I assume the GC is kicking in. Or did I cancel the process unintentionally? Let me run it again and this time I'll just wait.
+
+Ah yeah it does seem to terminate on its own, but it takes a minute or two.
+
+If I don't actually call `testProcessMessage` then it terminates fine on its own. I wonder what aspect of it is holding on to resources.
+
+By the way, it looks like I can now step through the C code in node.js as well. It seems to support DWARF debugging, which it didn't before.
+
+I think I'm going to set aside this lingering-lifetime issue for the moment. For this POC, there are some more important things I want to do:
+
+1. How big is a snapshot?
+2. Getting command execution working.
