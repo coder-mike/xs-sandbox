@@ -840,3 +840,56 @@ I think I'm going to set aside this lingering-lifetime issue for the moment. For
 
 1. How big is a snapshot?
 2. Getting command execution working.
+
+So I'm going to start by trying to pipe a snapshot to the host.
+
+I'm getting a "stack overflow" while trying to take the snapshot. I expect it's the same kind of issue I had before, that the stack checking just doesn't work.
+
+It seems to happen right near the beginning, when it runs a garbage collection.
+
+Yeah, there's another `fxCheckCStack`. I'm just adding a return to it.
+
+The beginning of the snapshot writing seems to be sensible, but then it trails off into writing the same address `0xfd6c` multiple times.
+
+```
+...
+snapshotWrite 0 0x5b568 32
+snapshotWrite 0 0x5b538 24
+snapshotWrite 0 0x5b550 24
+snapshotWrite 0 0x5be10 8
+snapshotWrite 0 0xfd6c 4
+snapshotWrite 0 0xfd6c 4
+snapshotWrite 0 0xfd6c 4
+snapshotWrite 0 0xfd6c 4
+snapshotWrite 0 0xfd6c 4
+snapshotWrite 0 0xfd6c 4
+snapshotWrite 0 0xfd6c 4
+```
+
+Ah. xsnap uses it like this:
+
+```c
+static int fxSnapshotWrite(void* stream, void* address, size_t size)
+{
+	SnapshotStream* snapshotStream = stream;
+	size_t written = fwrite(address, size, 1, snapshotStream->file);
+	snapshotStream->size += size * written;
+	return (written == 1) ? 0 : errno;
+}
+```
+
+So based on the arguments of `fwrite`, it seems like `address` is actually a pointer to the data not the target address. So when we're reading from the same address repeatedly, it's probably an intermediate buffer of local variable.
+
+So I assume that the snapshotting process is designed to output linearly only.
+
+Anyway, I have enough to calculate the size now.
+
+Total output size 87433.
+
+That's hilariously big for what is essentially an empty VM. And it's hilarious that the smallest snapshot size is much bigger than Microvium's maximum memory capacity.
+
+But still its small enough for my purposes. But it's informative. It definitely requires some kind of file storage.
+
+I'm curious whether any of the machine creation parameters affect this. I'll multiply everything by 2 and see if it changes the snapshot size. No, it's identical. So at least I know it's not snapshotting unused memory.
+
+Ok, so next I'll need to write some logic to create a self-expanding buffer to store the output, and then return it to JS, and send it back to C to restore a snapshot and see if I can get a round-trip working.

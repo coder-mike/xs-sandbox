@@ -5,5 +5,6 @@
 - [ ] Add back textdecoder and textencoder
 - [ ] Enable mxDebug (to get line numbers on exceptions, if we can)
 - [ ] Enable optimization (and debug issues)
+- [ ] Fix stack checking (fxCheckCStack) in parsing and GC among other places.
 
 

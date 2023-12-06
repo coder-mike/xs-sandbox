@@ -8,6 +8,7 @@ console.log('Calling exported function...');
 
 // Assuming Module is the Emscripten module
 const process_message = moduleInstance.cwrap('process_message', 'number', ['number', 'number', 'number']);
+const take_snapshot = moduleInstance.cwrap('take_snapshot', 'number', ['number']);
 
 /**
  * @param {Uint8Array} inputBuffer
@@ -49,6 +50,14 @@ function processMessage(inputBuffer) {
     return resultBuffer;
 }
 
+function takeSnapshot() {
+  // Allocate memory for the output size
+  let outputSizePtr = moduleInstance._malloc(4);
+
+  const outputPtr = take_snapshot(outputSizePtr);
+
+}
+
 // Helper function to encode a string to a Uint8Array
 function stringToUint8Array(str) {
   // This is a simple way to convert a string to a Uint8Array using TextEncoder
@@ -78,5 +87,7 @@ function testProcessMessage() {
 
 // Run the test
 testProcessMessage();
+
+takeSnapshot();
 
 console.log('done');

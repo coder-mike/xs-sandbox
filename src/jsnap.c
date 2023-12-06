@@ -15,6 +15,14 @@ static xsMachine* machine;
 
 void initMachine();
 
+// Function callable by the guest to send a command to the host
+void sendCommand(xsMachine* the);
+
+#define snapshotCallbackCount 1
+xsCallback snapshotCallbacks[snapshotCallbackCount] = {
+  sendCommand,
+};
+
 static xsBooleanValue meteringCallback(xsMachine* the, xsUnsignedValue index)
 {
   printf("Metering callback: %u\n", index);
@@ -23,6 +31,17 @@ static xsBooleanValue meteringCallback(xsMachine* the, xsUnsignedValue index)
     return 0;
   }
   return 1;
+}
+
+void populateGlobals(xsMachine* the) {
+  xsBeginHost(machine);
+	{
+    xsVars(1);
+
+    xsResult = xsNewHostFunction(sendCommand, 1);
+    xsDefine(xsGlobal, xsID("sendCommand"), xsResult, xsDontEnum);
+  }
+  xsEndHost(machine);
 }
 
 /**
@@ -65,6 +84,7 @@ uint8_t* process_message(uint8_t* buffer, size_t size, uint32_t* out_size) {
 
   printf("creating machine...\n");
   machine = xsCreateMachine(creation, "jsnap", NULL);
+  populateGlobals(machine);
 
   printf("begin metering...\n");
   xsBeginMetering(machine, meteringCallback, meteringInterval);
@@ -105,6 +125,45 @@ uint8_t* process_message(uint8_t* buffer, size_t size, uint32_t* out_size) {
   return out_buffer;
 }
 
+int snapshotReadChunk(void* stream, void* address, size_t size) {
+  printf("snapshotReadChunk %p %p %lu\n", stream, address, size);
+  return 0;
+}
+
+int totalSize = 0;
+int snapshotWriteChunk(void* stream, void* address, size_t size) {
+  // printf("snapshotWriteChunk %p %p %lu\n", stream, address, size);
+  totalSize += size;
+  return 0;
+}
+
+uint8_t* take_snapshot(uint32_t* out_size) {
+  printf("take_snapshot\n");
+  *out_size = 0;
+
+  static const char SNAPSHOT_SIGNATURE[] = "jsnap-1";
+  txSnapshot snapshotOpts = {
+		(char*)SNAPSHOT_SIGNATURE,
+		sizeof(SNAPSHOT_SIGNATURE) - 1,
+		snapshotCallbacks,
+		snapshotCallbackCount,
+		snapshotReadChunk,
+		snapshotWriteChunk,
+		NULL,
+		0,
+		NULL,
+		NULL,
+		NULL,
+		0,
+		NULL
+	};
+
+  fxWriteSnapshot(machine, &snapshotOpts);
+  printf("totalSize: %d\n", totalSize);
+
+  return NULL;
+}
+
 void initMachine() {
   xsInitializeSharedCluster();
 
@@ -124,4 +183,8 @@ void initMachine() {
   xsCreation* creation = &_creation;
 
   machine = xsCreateMachine(creation, "jsnap", NULL);
+}
+
+void sendCommand(xsMachine* the) {
+  printf("sendCommand\n");
 }

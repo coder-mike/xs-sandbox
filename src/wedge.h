@@ -12,6 +12,8 @@ implementation in here.
 
 #include "xs.h"
 
+typedef int32_t xsSize;
+
 #define xsInitializeSharedCluster() \
 	fxInitializeSharedCluster()
 #define xsTerminateSharedCluster() \
@@ -36,3 +38,34 @@ mxImport void fxRunLoop(xsMachine* the);
 
 xsUnsignedValue fxGetCurrentMeter(xsMachine* the);
 void fxSetCurrentMeter(xsMachine* the, xsUnsignedValue value);
+
+typedef struct sxProjection txProjection;
+typedef struct sxSnapshot txSnapshot;
+
+struct sxProjection {
+	txProjection* nextProjection;
+	xsSlot* heap;
+	xsSlot* limit;
+	size_t indexes[1];
+};
+
+struct sxSnapshot {
+	char* signature;
+	int signatureLength;
+	xsCallback* callbacks;
+	int callbacksLength;
+	int (*read)(void* stream, void* address, size_t size);
+	int (*write)(void* stream, void* address, size_t size);
+	void* stream;
+	int error;
+	xsByte* firstChunk;
+	txProjection* firstProjection;
+	xsSlot* firstSlot;
+	xsSize slotSize;
+	xsSlot** slots;
+};
+
+// Defined in xsSnapshot.c
+extern xsMachine* fxReadSnapshot(txSnapshot* snapshot, char* theName, void* theContext);
+extern int fxWriteSnapshot(xsMachine* the, txSnapshot* snapshot);
+

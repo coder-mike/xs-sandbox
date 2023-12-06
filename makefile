@@ -98,14 +98,17 @@ LDFLAGS := -sINITIAL_MEMORY=1048576 \
            -sMODULARIZE=1 \
            -sEXPORT_ES6=1 \
            -sEXPORTED_RUNTIME_METHODS=ccall,cwrap \
-           -sEXPORTED_FUNCTIONS='["_process_message", "_malloc", "_free"]' \
+           -sEXPORTED_FUNCTIONS='["_process_message", "_take_snapshot", "_malloc", "_free"]' \
            --use-preload-cache
 
 LDFLAGS += -g3
 LDFLAGS += -fdebug-compilation-dir=..
 # LDFLAGS += -sSTACK_OVERFLOW_CHECK=1
+LDFLAGS += -sSTACK_OVERFLOW_CHECK=0
 # LDFLAGS += -sASSERTIONS=2
+LDFLAGS += -sASSERTIONS=2
 # LDFLAGS += -sSAFE_HEAP=1
+LDFLAGS += -sSAFE_HEAP=0
 # LDFLAGS += -sSINGLE_FILE
 
 # Makefile Rules
