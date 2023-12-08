@@ -1,0 +1,3 @@
+[submodule "moddable"]
+	path = moddable
+	url = https://github.com/coder-mike/moddable.git
