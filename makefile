@@ -82,18 +82,20 @@ CFLAGS := -fno-common \
           -I$(XS_DIR)/platforms \
           -I$(XS_DIR)/sources \
           -I$(SRC_DIR) \
-          -O0
+          -O2
 
-CFLAGS += -g3
-CFLAGS += -fdebug-compilation-dir=..
+# CFLAGS += -g3
+# CFLAGS += -fdebug-compilation-dir=..
 # CFLAGS += -DmxNoConsole=1
 
 # The bounds checking seems to enable `fxCheckCStack` which doesn't work in WASM
 CFLAGS += -DmxBoundsCheck=0
 
 # Linker Flags
-LDFLAGS := -sINITIAL_MEMORY=1048576 \
+LDFLAGS := -sINITIAL_MEMORY=4194304 \
+           -sSTACK_SIZE=1048576 \
            -sALLOW_MEMORY_GROWTH \
+           -sMEMORY_GROWTH_GEOMETRIC_STEP=1.0 \
            -sSUPPORT_LONGJMP=1 \
            -sMODULARIZE=1 \
            -sEXPORT_ES6=1 \
@@ -101,8 +103,8 @@ LDFLAGS := -sINITIAL_MEMORY=1048576 \
            -sEXPORTED_FUNCTIONS='["_process_message", "_take_snapshot", "_malloc", "_free"]' \
            --use-preload-cache
 
-LDFLAGS += -g3
-LDFLAGS += -fdebug-compilation-dir=..
+# LDFLAGS += -g3
+# LDFLAGS += -fdebug-compilation-dir=..
 # LDFLAGS += -sSTACK_OVERFLOW_CHECK=1
 LDFLAGS += -sSTACK_OVERFLOW_CHECK=0
 # LDFLAGS += -sASSERTIONS=2
@@ -110,6 +112,25 @@ LDFLAGS += -sASSERTIONS=2
 # LDFLAGS += -sSAFE_HEAP=1
 LDFLAGS += -sSAFE_HEAP=0
 # LDFLAGS += -sSINGLE_FILE
+LDFLAGS += -sSYSCALL_DEBUG=1
+LDFLAGS += -sSOCKET_DEBUG=1
+LDFLAGS += -sDYLINK_DEBUG=1
+LDFLAGS += -sFS_DEBUG=1
+LDFLAGS += -sWEBSOCKET_DEBUG=1
+LDFLAGS += -sASYNCIFY_DEBUG=2
+LDFLAGS += -sPROXY_POSIX_SOCKETS=0
+LDFLAGS += -sFILESYSTEM=0
+# LDFLAGS += -sDETERMINISTIC=1  # Doesn't seem to work
+LDFLAGS += -sUSE_SDL=0
+LDFLAGS += -sWASM_WORKERS=0
+LDFLAGS += -sPTHREADS_DEBUG=1
+LDFLAGS += -sFETCH_DEBUG=1
+LDFLAGS += -sRUNTIME_DEBUG=1
+LDFLAGS += -sFETCH=0
+LDFLAGS += -sWASMFS=0
+LDFLAGS += -sAUTO_JS_LIBRARIES=0
+LDFLAGS += -sAUTO_NATIVE_LIBRARIES=0
+LDFLAGS += -sALLOW_UNIMPLEMENTED_SYSCALLS=0
 
 # Makefile Rules
 all: $(OUT_DIR)/mylib.mjs

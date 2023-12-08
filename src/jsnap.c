@@ -44,6 +44,48 @@ void populateGlobals(xsMachine* the) {
   xsEndHost(machine);
 }
 
+typedef struct {
+	xsSlot* slot;
+	xsSize offset;
+	xsSize size;
+} txStringStream;
+
+typedef int (*txGetter)(void*);
+typedef txS4 txSize;
+typedef char* txString;
+typedef txU4 txUnsigned;
+
+typedef struct {
+	void* callback;
+	txS1* symbolsBuffer;
+	txSize symbolsSize;
+	txS1* codeBuffer;
+	txSize codeSize;
+	txS1* hostsBuffer;
+	txSize hostsSize;
+	txString path;
+	txS1 version[4];
+} txScript;
+
+txScript* fxParseScript(xsMachine* the, void* stream, txGetter getter, txUnsigned flags);
+int fxStringGetter(void* theStream);
+
+enum {
+	mxCFlag = 1 << 0,
+	mxDebugFlag = 1 << 1,
+	mxEvalFlag = 1 << 2,
+	mxProgramFlag = 1 << 3,
+	mxStrictFlag = 1 << 4,
+	mxSuperFlag = 1 << 5,
+	mxTargetFlag = 1 << 6,
+	mxFieldFlag = 1 << 15,
+	mxFunctionFlag = 1 << 16,
+	mxGeneratorFlag = 1 << 21,
+};
+#define c_strlen strlen
+
+#define mxStringLength(_STRING) ((txSize)c_strlen(_STRING))
+
 /**
  * Process a message from the host. The message contained in `buffer` of length
  * `size` is processed and the result is stored in `out_buffer` of length
@@ -98,12 +140,20 @@ uint8_t* process_message(uint8_t* buffer, size_t size, uint32_t* out_size) {
       printf("begin try...\n");
       xsTry {
         xsVar(0) = xsString("'Hello' + ', ' + 'from XS!'");
+
+        printf("Parsing script\n");
+        txStringStream aStream;
+        aStream.slot = &xsVar(0);
+        aStream.offset = 0;
+        aStream.size = mxStringLength(xsToString(xsVar(0)));
+        txScript* script = fxParseScript(the, &aStream, fxStringGetter, mxProgramFlag | mxEvalFlag);
+
         printf("Script prepared for eval\n");
         xsVar(1) = xsCall1(xsGlobal, xsID("eval"), xsVar(0));
         printf("Eval called\n");
 
-        const char* result = xsToString(xsVar(1));
-        printf("Result of eval: %s\n", result); // Print the result
+        //const char* result = xsToString(xsVar(1));
+        //printf("Result of eval: %s\n", result); // Print the result
       }
       xsCatch {
         xsVar(1) = xsException;

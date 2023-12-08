@@ -1,5 +1,11 @@
 import my_lib from './dist/mylib.mjs';
 
+console.log('process ID', process.pid);
+console.log("Current Node.js Version:", process.version);
+
+// console.log('Waiting 10 seconds for the profiler to attach...');
+// await new Promise(resolve => setTimeout(resolve, 10_000));
+
 console.log('Initializing wasm module...');
 const moduleInstance = await my_lib();
 

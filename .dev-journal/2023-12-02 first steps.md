@@ -893,3 +893,242 @@ But still its small enough for my purposes. But it's informative. It definitely 
 I'm curious whether any of the machine creation parameters affect this. I'll multiply everything by 2 and see if it changes the snapshot size. No, it's identical. So at least I know it's not snapshotting unused memory.
 
 Ok, so next I'll need to write some logic to create a self-expanding buffer to store the output, and then return it to JS, and send it back to C to restore a snapshot and see if I can get a round-trip working.
+
+----
+
+Actually, next I'm going to try fix the weird non-existing issue. The symptom is that the program stays open for much longer in node.js than the termination of the script. I'm going to remove pieces of the code until I figure out what might be causing it.
+
+Ok, when I remove the script evaluation then it exits immediately.
+
+I can see in the difference between the logs that the heap resizing is a bit different and also that the metering is triggered.
+
+I wonder if it's something related to the debugging. Maybe it's trying to establish a debug network connection or something. Here are some possible ideas:
+
+1. The VM is setting up a network socket for debugging.
+2. The VM is setting up another thread.
+
+I'm going to turn off debugging and metering and see what it does.
+
+Ok, it still hangs. Next I'm going to set these to zero:
+
+```c
+#define mxUseGCCAtomics 0
+#define mxUsePOSIXThreads 0
+```
+
+It still hangs.
+
+Maybe I'll try performing the parse and evaluation separately.
+
+Btw, `eval` seems to indirectly invoke `fx_eval`.
+
+Apparently the parsing on its own doesn't cause the freezing.
+
+When it runs the parsed script, it does so with `fxRunScript`. It's a bit of a long shot but I'm going to try early exit from `fxRunScript` and see at what point it causes the freeze.
+
+Perhaps not surprisingly, it's the line `mxRunCount(0);` that seems to be causing the freeze. I'll have to see what opcodes get executed there.
+
+These are the only opcodes:
+
+```
+Opcode 11
+Opcode 83
+Opcode 124
+Line 1
+Opcode 75
+Opcode 201
+Opcode 201
+Opcode 1
+Opcode 201
+Opcode 1
+Opcode 187
+Opcode 169
+```
+
+I'm going to just do a binary search here.
+
+Interesting. It's only when it invokes `XS_CODE_LINE` (124) that it causes the freeze. If I return from `fxRunID` before processing that instruction then the environment terminates fine.
+
+Ok, it's more complicated than that. If I put the return *after* XS_CODE_LINE then it also terminates fine.
+
+That's weird. If I put the return at the beginning of `XS_CODE_EVAL_ENVIRONMENT` (75), it doesn't terminate ok. But the beginning of XS_CODE_EVAL_ENVIRONMENT is basically meant to be the same as the end of XS_CODE_LINE.
+
+If I comment out the body of XS_CODE_LINE, I still get the same freezing behavior. So it's not something specifically related to the implementation of that opcode.
+
+I wonder if it could be something like a stack overflow. Or it could be the metering. Nah, the metering is just incrementing a counter, at least in this part of the loop.
+
+I'll check if it's something memory-related by bumping up the initial memory so it doesn't need to resize.
+
+I bumped up all the memory -- 4x for the creation parameters and 8x for the VM memory. I can see that it doesn't go through any resizing, but it still hangs at the end of the script.
+
+Ok, I think I give up. The problem is reasonably benign, and it doesn't show up in the browser.
+
+Actually one more thing, I'm going to read through all the emscripten options and see if I can lock it down more. If the issue is related to a thread or something weird like that, then maybe adding debug output or disabling features may help.
+
+The issue didn't go away, but with extra logging:
+
+```
+Initializing wasm module...
+asynchronously preparing wasm
+run() called, but dependencies remain, so not running
+initRuntime
+Calling exported function...
+syscall! fd_write: [1,129904,2,129900]
+Size of xsSlot: 16
+syscall return: 0
+syscall! fd_write: [1,129904,2,129900]
+creating machine...
+syscall return: 0
+syscall! fd_write: [1,129584,2,129580]
+Size of txSlot: 16
+syscall return: 0
+syscall! fd_write: [1,129568,2,129564]
+fxAllocateSlots: 4096 * 16
+syscall return: 0
+syscall! fd_write: [1,129536,2,129532]
+fxAllocateSlots: 32768 * 16
+syscall return: 0
+growMemory: 2097152 (+1048576 bytes / 16.999984741210938 pages)
+Heap resize call from 1048576 to 2097152 took 0.5631999969482422 msecs. Success: true
+syscall! fd_write: [1,129904,2,129900]
+begin metering...
+syscall return: 0
+syscall! fd_write: [1,129904,2,129900]
+begin host...
+syscall return: 0
+syscall! fd_write: [1,129904,2,129900]
+host vars...
+syscall return: 0
+syscall! fd_write: [1,129904,2,129900]
+begin try...
+syscall return: 0
+syscall! fd_write: [1,129904,2,129900]
+Parsing script
+syscall return: 0
+growMemory: 4194304 (+2097152 bytes / 32.99998474121094 pages)
+Heap resize call from 2097152 to 4194304 took 2.487799882888794 msecs. Success: true
+syscall! fd_write: [1,129904,2,129900]
+Script prepared for eval
+syscall return: 0
+syscall! fd_write: [1,126560,2,126556]
+Metering callback: 10005
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+Opcode 11
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+Opcode 83
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+Opcode 124
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+Opcode 75
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+XS_CODE_EVAL_ENVIRONMENT
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+Opcode 201
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+Opcode 201
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+Opcode 1
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+Opcode 201
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+Opcode 1
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+Opcode 187
+syscall return: 0
+syscall! fd_write: [1,126608,2,126604]
+Opcode 169
+syscall return: 0
+syscall! fd_write: [1,129904,2,129900]
+Eval called
+syscall return: 0
+syscall! fd_write: [1,129904,2,129900]
+end metering...
+syscall return: 0
+reading output
+freeing memory
+Hello, World
+syscall! fd_write: [1,130688,2,130684]
+take_snapshot
+syscall return: 0
+syscall! fd_write: [1,130688,2,130684]
+totalSize: 87433
+syscall return: 0
+done
+```
+
+I don't see anything here that would be a problem.
+
+So yeah, I think I'm giving up on this one for the moment.
+
+2023-12-09 06:17 Oh, in the task manager, I can see an instance of node.js taking up GB of RAM. And I added a `process.exit(0);` to the end of the script and it didn't actually exit.
+
+Oh this is also weird: in task manager, the "command line" for all my node instances includes Adobe Creative Cloud in the path. Oh, I think that's a red herring. It's because when I'm running under the debugger, the "actual" node process doesn't show up in the task manager under the "processes" window. Maybe it's spun up as a child process or something.
+
+When running in the debugger, I don't get the same weird behavior. The memory doesn't spike. It seems to sit around 20 MB before running the VM. Then it goes up to 24MB when I create the VM.
+
+2023-12-09 06:41 Ok, so actually I do still get some weird spiking while running in the debugger, but it seems to get released again immediately. But it does go up to a GB. It does appear to be when eval is called.
+
+When running outside the debugger, the memory spikes to more like 6GB, and then freezes while it tries to release that memory.
+
+I'm going to try do some memory profiling with `node --inspect-brk run.mjs`.
+
+----
+
+Parsing script
+Grow memory
+Script prepared for eval
+!Spike
+Metering callback: 10005
+
+Apparently no opcodes executed before the spike.
+
+Ok, interesting. I added a log to `fx_eval` and it appears that the spike happens before the entry to `fx_eval`.
+
+Added more logging. The spike happens between fxRunCount and fxRunID.
+
+That's weird as heck, because `fxRunCount` doesn't do anything except call `fxRunID`
+
+```c
+void fxRunCount(txMachine* the, txInteger count)
+{
+	printf("fxRunCount\n");
+	fxRunID(the, C_NULL, count);
+}
+```
+
+Another way of putting it is that it's something in prolog of fxRunID that's actually causing the issue.
+
+Now I'm having issues getting into the inspector.
+
+I can reproduce the issue in the VS code debugger. If I breakpoint on fxRunCount and then step into fxRunID, the process of stepping into it causes the memory to spike.
+
+Ok, I managed to get the inspector going again. The thing is, when I step out of the syscall hook, which should be stepping back to `fxRunCount`, I see the spike. It's around a GB.
+
+So I have another theory as to why I'm seeing this behavior: it's the debugger or something related to debugging.
+
+This explains why it spikes more (6GB) in VS Code than in inspector (1GB), since inspector doesn't have the debug symbols. But inspector is still loading something so that it can render the disassembly.
+
+Running on this theory, I'm going to try remove the compilation of DWARF and debug symbols.
+
+Urg. It was a good theory but I still have the same problem.
+
+Now I'm trying with O2 optimization and bumping up the stack memory to a MB (in case the issue is that fxRunID is just doing something crazy with the stack). I need to bump up the total initial memory as well to handle the larger stack.
+
+Ok, that actually worked. I'm guessing it's the optimization, but let me restore the smaller stack and memory size and see what happens.
+
+Yeah ok, it was the optimization that helped, because it still works fine when I reduce the stack and initial memory back down. Although I think it's not a bad idea to have quite a large stack here, so I might bump it back up again.
+
+I don't have a satisfactory theory about why it's behaving like this. I understand that `fxRunID` is a big function. Maybe there's a bug in the WASM runtime that it can't handle particularly big functions very well.
+
+Anyway, I'm pleased that it's working. Next I'll need to clean up. I want to re-enable various safety checks, and I want to remove all the extra print statements and logging that I put in.
