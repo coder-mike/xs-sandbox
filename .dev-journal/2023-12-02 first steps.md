@@ -1132,3 +1132,14 @@ Yeah ok, it was the optimization that helped, because it still works fine when I
 I don't have a satisfactory theory about why it's behaving like this. I understand that `fxRunID` is a big function. Maybe there's a bug in the WASM runtime that it can't handle particularly big functions very well.
 
 Anyway, I'm pleased that it's working. Next I'll need to clean up. I want to re-enable various safety checks, and I want to remove all the extra print statements and logging that I put in.
+
+-----
+
+2023-12-09 10:45 Ok, I think I'm finally ready to start developing the API properly. What do I need:
+
+1. A way to construct an empty VM.
+2. A way to run a script in a VM.
+3. A way to pass a message to the VM.
+4. A way to get a message from the VM.
+5. A way to snapshot a VM.
+6. A way to restore a VM from a snapshot.

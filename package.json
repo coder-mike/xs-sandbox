@@ -1,0 +1,11 @@
+{
+  "name": "xs-sandbox",
+  "version": "1.0.0",
+  "description": "JavaScript sandbox with snapshotting",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Michael Hunter",
+  "license": "MIT, Apache-2.0, LGPL-3.0"
+}

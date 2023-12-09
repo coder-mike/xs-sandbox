@@ -1,6 +1,6 @@
 # Compiler and Output Settings
 CC=emcc
-OUT_DIR=dist
+OUT_DIR=build
 OBJ_DIR=obj
 
 # Directories
@@ -92,7 +92,7 @@ CFLAGS := -fno-common \
 CFLAGS += -DmxBoundsCheck=0
 
 # Linker Flags
-LDFLAGS := -sINITIAL_MEMORY=2097152 \
+LDFLAGS := -sINITIAL_MEMORY=4194304 \
            -sSTACK_SIZE=262144 \
            -sALLOW_MEMORY_GROWTH \
            -sMEMORY_GROWTH_GEOMETRIC_STEP=1.0 \

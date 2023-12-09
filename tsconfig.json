@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "alwaysStrict": true,
+        "declaration": true,
+        "esModuleInterop": true,
+        "lib": ["ESNext", "dom"],
+        "module": "ES2022",
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": false,
+        "noImplicitThis": true,
+        "outDir": "dist",
+        "sourceMap": true,
+        "strictNullChecks": true,
+        "target": "ES2022",
+        "typeRoots": ["node_modules/@types"],
+        "preserveConstEnums": false
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "build"
+    ],
+    "ts-node": {
+        "compilerOptions": {
+            "module": "CommonJS"
+        }
+    },
+}
