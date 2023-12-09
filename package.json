@@ -1,11 +1,47 @@
 {
   "name": "xs-sandbox",
   "version": "1.0.0",
-  "description": "JavaScript sandbox with snapshotting",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "publishConfig": {
+    "access": "public"
   },
+  "description": "JavaScript sandbox with snapshotting",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "keywords": [
+    "JavaScript",
+    "sandbox",
+    "snapshot"
+  ],
+  "scripts": {
+    "test": "mocha",
+    "build": "make"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coder-mike/xs-sandbox.git"
+  },
+  "bugs": {
+    "url": "https://github.com/coder-mike/xs-sandbox/issues"
+  },
+  "files": [
+    "dist/index.js",
+    "dist/index.mjs",
+    "dist/**/*.d.ts"
+  ],
   "author": "Michael Hunter",
-  "license": "MIT, Apache-2.0, LGPL-3.0"
+  "license": "MIT, Apache-2.0, LGPL-3.0",
+  "homepage": "https://github.com/coder-mike/xs-sandbox#readme",
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.14.6",
+    "microvium": "^0.0.25",
+    "mocha": "^10.2.0",
+    "rollup": "^3.18.0",
+    "source-map-support": "^0.5.21",
+    "ts-lib": "^0.0.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5"
+  }
 }

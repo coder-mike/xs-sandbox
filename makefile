@@ -1,7 +1,8 @@
 # Compiler and Output Settings
 CC=emcc
-OUT_DIR=build
+BUILD_DIR=build
 OBJ_DIR=obj
+DIST_DIR=dist
 
 # Directories
 SRC_DIR=src
@@ -130,10 +131,9 @@ LDFLAGS += -sAUTO_NATIVE_LIBRARIES=0
 LDFLAGS += -sALLOW_UNIMPLEMENTED_SYSCALLS=0
 
 # Makefile Rules
-all: $(OUT_DIR)/mylib.mjs
+all: $(DIST_DIR)/index.mjs
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(XS_DIR)/sources/%.c | $(OBJ_DIR)
@@ -148,17 +148,22 @@ $(OBJ_DIR)/%.o: $(MODULES_DIR)/data/text/encoder/%.c | $(OBJ_DIR)
 $(OBJ_DIR)/%.o: $(MODULES_DIR)/data/base64/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OUT_DIR)/mylib.mjs: $(OBJECTS)
-	@mkdir -p $(OUT_DIR)
+$(BUILD_DIR)/wasm-wrapper.mjs: $(OBJECTS) | $(BUILD_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+
+$(DIST_DIR)/index.mjs $(DIST_DIR)/index.js: $(BUILD_DIR)/wasm-wrapper.mjs | $(DIST_DIR)
+	npx rollup --config rollup.config.mjs
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
-$(OUT_DIR):
-	mkdir -p $(OUT_DIR)
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+$(DIST_DIR):
+	mkdir -p $(DIST_DIR)
 
 clean:
-	rm -rf $(OBJ_DIR) $(OUT_DIR)
+	rm -rf $(OBJ_DIR) $(BUILD_DIR)
 
 .PHONY: all clean

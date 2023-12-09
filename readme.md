@@ -4,7 +4,8 @@ This is an experiment to create a JavaScript sandbox (in a JavaScript host) that
 
 This is under development. Have a look at [.dev-journal/](./.dev-journal/2023-12-02%20first%20steps.md) for my notes as I develope this.
 
-Note: I've had issues under node.js 18 with the WASM crashing, but it seems to be working ok in the browser and in node.js 20 (in Windows).
+
+## Usage
 
 Example:
 
@@ -41,6 +42,11 @@ Within the sandbox, there are two special globals:
 
 Messages are sent between the host and the guest as JSON, so they cannot contain references to functions, etc.
 
+## Known issues
+
+- I've had issues under node.js 18 with the WASM crashing, but it seems to be working ok in the browser and in node.js 20 (in Windows).
+- When building without optimization, there's a weird behavior where the `fxRunID` C function (compiled to WASM) seems to cause a spike in memory usage by multiple GB for a few seconds, and if running in Node then the node process takes some time to exit at the end (tens of seconds).
+
 
 ## Maintainer notes
 
@@ -58,11 +64,11 @@ Or if you've already cloned without submodules, run:
 git submodule update --init --recursive
 ```
 
-I'm on using Windows, using mingw make. To build the project:
+To build the project:
 
 ```sh
-mingw32-make clean
-mingw32-make
+npm install
+npm run build
 ```
 
 ## License
