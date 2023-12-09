@@ -4,7 +4,7 @@
         "declaration": true,
         "esModuleInterop": true,
         "lib": ["ESNext", "dom"],
-        "module": "ES2022",
+        "module": "Node16",
         "noFallthroughCasesInSwitch": true,
         "noImplicitAny": false,
         "noImplicitThis": true,
@@ -13,15 +13,16 @@
         "strictNullChecks": true,
         "target": "ES2022",
         "typeRoots": ["node_modules/@types"],
-        "preserveConstEnums": false
+        "preserveConstEnums": false,
+        "moduleResolution": "Node16",
+        "allowJs": true
     },
     "include": [
-        "src/**/*"
+        "build/**/*"
     ],
     "exclude": [
         "node_modules",
-        "dist",
-        "build"
+        "dist"
     ],
     "ts-node": {
         "compilerOptions": {
