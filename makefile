@@ -109,7 +109,7 @@ LDFLAGS := -sINITIAL_MEMORY=4194304 \
 LDFLAGS += -sSTACK_OVERFLOW_CHECK=1
 LDFLAGS += -sASSERTIONS=2
 LDFLAGS += -sSAFE_HEAP=1
-LDFLAGS += -sSINGLE_FILE
+# LDFLAGS += -sSINGLE_FILE
 LDFLAGS += -sSYSCALL_DEBUG=0
 LDFLAGS += -sSOCKET_DEBUG=1
 LDFLAGS += -sDYLINK_DEBUG=1
@@ -151,10 +151,16 @@ $(OBJ_DIR)/%.o: $(MODULES_DIR)/data/base64/%.c | $(OBJ_DIR)
 $(BUILD_DIR)/wasm-wrapper.mjs: $(OBJECTS) | $(BUILD_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 
-$(BUILD_DIR)/%.mts: $(SRC_DIR)/%.mts | $(BUILD_DIR)
+$(SRC_DIR)/wasm-wrapper.mjs: $(BUILD_DIR)/wasm-wrapper.mjs
 	cp $< $@
 
-$(DIST_DIR)/index.mjs $(DIST_DIR)/index.js: $(BUILD_DIR)/index.mts $(BUILD_DIR)/wasm-wrapper.mjs tsconfig.json | $(DIST_DIR)
+$(SRC_DIR)/wasm-wrapper.wasm: $(BUILD_DIR)/wasm-wrapper.wasm
+	cp $< $@
+
+$(DIST_DIR)/wasm-wrapper.wasm: $(BUILD_DIR)/wasm-wrapper.wasm
+	cp $< $@
+
+$(DIST_DIR)/index.mjs $(DIST_DIR)/index.js: $(SRC_DIR)/*.mts $(SRC_DIR)/*.mjs tsconfig.json $(SRC_DIR)/wasm-wrapper.wasm $(DIST_DIR)/wasm-wrapper.wasm | $(DIST_DIR)
 	npx rollup --config rollup.config.mjs
 
 $(OBJ_DIR):

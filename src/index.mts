@@ -1,4 +1,4 @@
-import wasmWrapper from '../build/wasm-wrapper.mjs';
+import wasmWrapper from './wasm-wrapper.mjs';
 
 export default class XSSandbox {
   static async create() {

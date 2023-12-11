@@ -3,7 +3,7 @@ import terser from '@rollup/plugin-terser';
 import pkg from './package.json' assert { type: "json" };
 
 export default {
-  input: 'build/index.mts',
+  input: 'src/index.mts',
   output: [{
     file: pkg.main,
     name: 'XSSandbox',
@@ -17,7 +17,7 @@ export default {
     sourcemap: true
   }],
   watch: {
-    include: ["build/**/*.mts", "build/**/*.mjs"],
+    include: ["src/**/*.mts", "src/**/*.mjs"],
     exclude: "node_modules/**/*",
     chokidar: {
       usePolling: true
@@ -27,6 +27,6 @@ export default {
     typescript({
       tsconfig: './tsconfig.json'
     }),
-    terser(),
+    // terser(),
   ]
 };

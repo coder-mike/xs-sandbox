@@ -8,5 +8,6 @@
 - [ ] Fix stack checking (fxCheckCStack) in parsing and GC among other places.
 - [ ] ESModules.
 - [ ] Re-enable terser
+- [ ] Re-enable SINGLE_FILE
 
 

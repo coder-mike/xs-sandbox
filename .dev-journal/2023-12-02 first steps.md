@@ -1143,3 +1143,8 @@ Anyway, I'm pleased that it's working. Next I'll need to clean up. I want to re-
 4. A way to get a message from the VM.
 5. A way to snapshot a VM.
 6. A way to restore a VM from a snapshot.
+
+-------
+
+2023-12-12 07:51 I'm having a ton of trouble getting the build pipeline to work. It's quite a tall order to build ESM together with TypeScript and getting ESM and CommonJS out.
+

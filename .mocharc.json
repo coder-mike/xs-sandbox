@@ -1,0 +1,11 @@
+{
+  "require": ["ts-node/register"],
+  "extensions": ["ts", "tsx"],
+  "watch-files": ["tests/**/*.ts", "src/**/*.mts"],
+  "reporter": [
+    "dot",
+    "spec"
+  ],
+  "ui": "tdd",
+  "spec": "tests/**/*.spec.ts"
+}

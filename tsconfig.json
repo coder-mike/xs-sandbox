@@ -18,7 +18,8 @@
         "allowJs": true
     },
     "include": [
-        "build/**/*"
+        "src/*.mjs",
+        "src/*.mts"
     ],
     "exclude": [
         "node_modules",
