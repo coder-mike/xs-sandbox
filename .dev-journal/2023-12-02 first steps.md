@@ -1148,3 +1148,10 @@ Anyway, I'm pleased that it's working. Next I'll need to clean up. I want to re-
 
 2023-12-12 07:51 I'm having a ton of trouble getting the build pipeline to work. It's quite a tall order to build ESM together with TypeScript and getting ESM and CommonJS out.
 
+Ok, it's a bit of a mess but it seems to be working:
+
+- Library is written in modular typescript (.mts)
+- Wasm wrapper is modular JavaScript (.mjs)
+- Unit tests are in CommonJS TypeScript (.ts)
+- The build process copies the wrapper into the `src` folder, but I've git-ignored it.
+- Rollup gives an unresolved dependency warning but the output seems to work ok anyway and as far as I can tell it's got everything in it.
