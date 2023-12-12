@@ -11,6 +11,12 @@ static const unsigned int meteringLimit = 1000000000; // TODO
 static const int meteringInterval = 1; // TODO
 static const int parserBufferSize = 1024 * 1024;
 
+typedef enum ErrorCode {
+  EC_OK_VALUE = 0, // Ok with return value
+  EC_OK_UNDEFINED = 1, // Ok with return undefined
+  EC_EXCEPTION = 2, // Returned exception message (string)
+} ErrorCode;
+
 static xsMachine* machine;
 
 void initMachine();
@@ -238,50 +244,65 @@ void initMachine() {
   populateGlobals(machine);
 }
 
-void evaluateScript(uint8_t* script) {
-  printf("evaluateScript: %s\n", (char*)script);
-  printf("begin metering...\n");
+ErrorCode evaluateScript(uint8_t* script, uint32_t** out_buffer, uint32_t* out_size) {
+  *out_buffer = NULL;
+  *out_size = 0;
+  ErrorCode code = EC_OK_UNDEFINED;
   xsBeginMetering(machine, meteringCallback, meteringInterval);
   {
     xsSetCurrentMeter(machine, 10000);
-    printf("begin host...\n");
     xsBeginHost(machine);
     {
-      printf("host vars...\n");
       xsVars(3);
-      printf("begin try...\n");
       xsTry {
         xsVar(0) = xsString(script);
 
-        printf("Script prepared for eval\n");
         xsVar(1) = xsCall1(xsGlobal, xsID("eval"), xsVar(0));
-        printf("Eval called\n");
 
-        // TODO: return result
-        const char* result = xsToString(xsVar(1));
-        printf("Result of eval: %s\n", result); // Print the result
-      }
-      xsCatch {
-        xsVar(1) = xsException;
-        printf("Caught an exception\n");
-        printf("Exception: %s\n", xsToString(xsException));
-        if (xsTypeOf(xsException) != xsUndefinedType) {
-          xsVar(1) = xsException;
-          xsException = xsUndefined;
+        char* result;
+        if (xsTypeOf(xsVar(1)) != xsUndefinedType) {
+          xsVar(0) = xsGet(xsGlobal, xsID("JSON"));
+          xsVar(0) = xsCall1(xsVar(0), xsID("stringify"), xsVar(1));
+          result = xsToString(xsVar(0));
+          *out_buffer = malloc(strlen(result) + 1);
+          strcpy((char*)*out_buffer, result);
+          *out_size = strlen(result);
+          code = EC_OK_VALUE;
+        } else {
+          *out_buffer = NULL;
+          *out_size = 0;
+          code = EC_OK_UNDEFINED;
         }
       }
+      xsCatch {
+        code = EC_EXCEPTION;
+        xsSetCurrentMeter(machine, 1000000000);
+        // TODO: Test returning exceptions
+        char* message;
+        if (xsTypeOf(xsException) != xsUndefinedType) {
+          message = xsToString(xsException);
+        } else {
+          message = "Unknown exception";
+        }
+        *out_buffer = malloc(strlen(message) + 1);
+        *out_size = strlen(message);
+        strcpy((char*)*out_buffer, message);
+        xsException = xsUndefined;
+      }
     }
+    // TODO: What happens when there's an exception and we try run the loop? And
+    // is it possible for the loop to throw more exceptions?
+    // TODO: What happens if the meter ran out before we process the loop?
     xsRunLoop(machine);
     xsEndHost(machine);
   }
   xsEndMetering(machine);
-  printf("end metering...\n");
+  return code;
 }
 
 void host_sendMessage(xsMachine* the) {
   printf("host_sendMessage\n");
   xsVars(1);
-  // Get JSON object in global
   xsVar(0) = xsGet(xsGlobal, xsID("JSON"));
   xsVar(0) = xsCall1(xsVar(0), xsID("stringify"), xsArg(0));
   const char* message = xsToString(xsVar(0));
