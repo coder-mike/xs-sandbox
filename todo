@@ -1,5 +1,8 @@
-- [ ] Lingering lifetime issue
+- [x] Lingering lifetime issue
+- [ ] Rename jsnap to xs-sandbox
 - [ ] Test metering
+- [ ] Check failure cases like metering expiry or other exception.
+- [ ] Failure cases with pending jobs in the queue.
 - [ ] Check memory usage
 - [ ] Proper submodule
 - [ ] Add back textdecoder and textencoder

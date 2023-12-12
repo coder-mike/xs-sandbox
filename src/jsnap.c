@@ -16,11 +16,13 @@ static xsMachine* machine;
 void initMachine();
 
 // Function callable by the guest to send a command to the host
-void sendCommand(xsMachine* the);
+void host_sendMessage(xsMachine* the);
+
+extern void sendMessage(uint8_t* buffer, size_t size);
 
 #define snapshotCallbackCount 1
 xsCallback snapshotCallbacks[snapshotCallbackCount] = {
-  sendCommand,
+  host_sendMessage,
 };
 
 static xsBooleanValue meteringCallback(xsMachine* the, xsUnsignedValue index)
@@ -38,8 +40,8 @@ void populateGlobals(xsMachine* the) {
 	{
     xsVars(1);
 
-    xsResult = xsNewHostFunction(sendCommand, 1);
-    xsDefine(xsGlobal, xsID("sendCommand"), xsResult, xsDontEnum);
+    xsResult = xsNewHostFunction(host_sendMessage, 1);
+    xsDefine(xsGlobal, xsID("sendMessage"), xsResult, xsDontEnum);
   }
   xsEndHost(machine);
 }
@@ -218,13 +220,13 @@ void initMachine() {
   xsInitializeSharedCluster();
 
   xsCreation _creation = {
-    32 * 1024 * 1024, /* initialChunkSize     */
-    4 * 1024 * 1024,  /* incrementalChunkSize */
-    256 * 1024,       /* initialHeapCount     */
-    128 * 1024,       /* incrementalHeapCount */
-    4096,             /* stackCount           */
-    32000,            /* initialKeyCount      */
-    8000,             /* incrementalKeyCount  */
+    256 * 1024,       /* initialChunkSize     */
+    256 * 1024,       /* incrementalChunkSize */
+    32 * 1024,        /* initialHeapCount     */
+    8 * 1024,         /* incrementalHeapCount */
+    4 * 1024,         /* stackCount           */
+    4 * 1024,         /* initialKeyCount      */
+    4 * 1024,         /* incrementalKeyCount  */
     1993,             /* nameModulo           */
     127,              /* symbolModulo         */
     parserBufferSize, /* parserBufferSize     */
@@ -232,9 +234,67 @@ void initMachine() {
   };
   xsCreation* creation = &_creation;
 
-  machine = xsCreateMachine(creation, "jsnap", NULL);
+  machine = xsCreateMachine(creation, "xsSandbox", NULL);
+  populateGlobals(machine);
 }
 
-void sendCommand(xsMachine* the) {
-  printf("sendCommand\n");
+void evaluateScript(uint8_t* script) {
+  printf("evaluateScript: %s\n", (char*)script);
+  printf("begin metering...\n");
+  xsBeginMetering(machine, meteringCallback, meteringInterval);
+  {
+    xsSetCurrentMeter(machine, 10000);
+    printf("begin host...\n");
+    xsBeginHost(machine);
+    {
+      printf("host vars...\n");
+      xsVars(3);
+      printf("begin try...\n");
+      xsTry {
+        xsVar(0) = xsString(script);
+
+        printf("Script prepared for eval\n");
+        xsVar(1) = xsCall1(xsGlobal, xsID("eval"), xsVar(0));
+        printf("Eval called\n");
+
+        // TODO: return result
+        const char* result = xsToString(xsVar(1));
+        printf("Result of eval: %s\n", result); // Print the result
+      }
+      xsCatch {
+        xsVar(1) = xsException;
+        printf("Caught an exception\n");
+        printf("Exception: %s\n", xsToString(xsException));
+        if (xsTypeOf(xsException) != xsUndefinedType) {
+          xsVar(1) = xsException;
+          xsException = xsUndefined;
+        }
+      }
+    }
+    xsRunLoop(machine);
+    xsEndHost(machine);
+  }
+  xsEndMetering(machine);
+  printf("end metering...\n");
+}
+
+void host_sendMessage(xsMachine* the) {
+  printf("host_sendMessage\n");
+  xsVars(1);
+  // Get JSON object in global
+  xsVar(0) = xsGet(xsGlobal, xsID("JSON"));
+  xsVar(0) = xsCall1(xsVar(0), xsID("stringify"), xsArg(0));
+  const char* message = xsToString(xsVar(0));
+  size_t messageSize = strlen(message);
+  sendMessage((uint8_t*)message, messageSize);
+}
+
+void receiveMessage(uint8_t* buffer, size_t size) {
+  printf("receiveMessage\n");
+  printf("size: %lu\n", size);
+  printf("buffer: %s\n", buffer);
+
+  const char* message = "\"Hello, world!\"";
+  size_t messageSize = strlen(message);
+  sendMessage((uint8_t*)message, messageSize);
 }

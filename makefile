@@ -101,7 +101,8 @@ LDFLAGS := -sINITIAL_MEMORY=4194304 \
            -sMODULARIZE=1 \
            -sEXPORT_ES6=1 \
            -sEXPORTED_RUNTIME_METHODS=ccall,cwrap \
-           -sEXPORTED_FUNCTIONS='["_process_message", "_take_snapshot", "_malloc", "_free"]' \
+           -sEXPORTED_FUNCTIONS='["_initMachine", "_evaluateScript", "_receiveMessage", "_process_message", "_take_snapshot", "_malloc", "_free"]' \
+           --js-library=$(SRC_DIR)/lib.js \
            --use-preload-cache
 
 # LDFLAGS += -g3
@@ -148,7 +149,7 @@ $(OBJ_DIR)/%.o: $(MODULES_DIR)/data/text/encoder/%.c | $(OBJ_DIR)
 $(OBJ_DIR)/%.o: $(MODULES_DIR)/data/base64/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/wasm-wrapper.mjs: $(OBJECTS) | $(BUILD_DIR)
+$(BUILD_DIR)/wasm-wrapper.mjs: $(OBJECTS) $(SRC_DIR)/lib.js | $(BUILD_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 
 $(SRC_DIR)/wasm-wrapper.mjs: $(BUILD_DIR)/wasm-wrapper.mjs
@@ -157,7 +158,7 @@ $(SRC_DIR)/wasm-wrapper.mjs: $(BUILD_DIR)/wasm-wrapper.mjs
 $(SRC_DIR)/wasm-wrapper.wasm: $(BUILD_DIR)/wasm-wrapper.wasm
 	cp $< $@
 
-$(DIST_DIR)/wasm-wrapper.wasm: $(BUILD_DIR)/wasm-wrapper.wasm
+$(DIST_DIR)/wasm-wrapper.wasm: $(BUILD_DIR)/wasm-wrapper.wasm | $(DIST_DIR)
 	cp $< $@
 
 $(DIST_DIR)/index.mjs $(DIST_DIR)/index.js: $(SRC_DIR)/*.mts $(SRC_DIR)/*.mjs tsconfig.json $(SRC_DIR)/wasm-wrapper.wasm $(DIST_DIR)/wasm-wrapper.wasm | $(DIST_DIR)

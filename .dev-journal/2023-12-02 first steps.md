@@ -1155,3 +1155,15 @@ Ok, it's a bit of a mess but it seems to be working:
 - Unit tests are in CommonJS TypeScript (.ts)
 - The build process copies the wrapper into the `src` folder, but I've git-ignored it.
 - Rollup gives an unresolved dependency warning but the output seems to work ok anyway and as far as I can tell it's got everything in it.
+
+----
+
+I was hoping to implement a `sendMessage` host function by just getting it to invoke a JS function. But it seems like that's not very easy to do, so I'm instead going back to the single `process_message` function. I can still expose a `sendMessage` to the guest JavaScript, but it will have to accumulate into a queue of messages to be sent. Then the result of `process_message` will somehow reference the bundle of messages. Given that I know that they're JSON-encoded, I could just have a single output buffer which I append `[`, `,`, and `]` to separate the messages, and expand as necessary.
+
+----
+
+2023-12-13 07:29 Actually, I'm going to take another shot at trying to figure out if I can call a JavaScript function from C, because after thinking about it, the buffering of messages would not be intuitive and may have an effect on debugging or in the case of infinite loops, etc.
+
+Ah, I found the section in the docs: https://emscripten.org/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#implement-a-c-api-in-javascript
+
+Ok, I figured out the way to do it.
