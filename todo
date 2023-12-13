@@ -1,15 +1,19 @@
 - [x] Lingering lifetime issue
+- [x] Snapshotting
+- [x] Test event loop
+- [x] Test promises across snapshots
+- [ ] Clean up unused functions like process_message
 - [ ] Rename jsnap to xs-sandbox
 - [ ] Test metering
 - [ ] Check failure cases like metering expiry or other exception.
-- [ ] Failure cases with pending jobs in the queue.
-- [ ] Check memory usage
-- [ ] Proper submodule
+- [ ] Check memory usage. Maybe try spinning up 1000 instance
 - [ ] Add back textdecoder and textencoder
 - [ ] Enable mxDebug (to get line numbers on exceptions, if we can)
 - [ ] Enable optimization (and debug issues)
-- [ ] Fix stack checking (fxCheckCStack) in parsing and GC among other places.
+- [ ] Fix stack checking (fxCheckCStack) in parsing and GC among other
+places.
 - [ ] ESModules.
+- [ ] Check the TODOs in code
 - [ ] Re-enable terser
 - [ ] Re-enable SINGLE_FILE
 

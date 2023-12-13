@@ -101,7 +101,7 @@ LDFLAGS := -sINITIAL_MEMORY=4194304 \
            -sMODULARIZE=1 \
            -sEXPORT_ES6=1 \
            -sEXPORTED_RUNTIME_METHODS=ccall,cwrap \
-           -sEXPORTED_FUNCTIONS='["_initMachine", "_evaluateScript", "_receiveMessage", "_process_message", "_take_snapshot", "_malloc", "_free"]' \
+           -sEXPORTED_FUNCTIONS='["_initMachine", "_restoreSnapshot", "_sandboxInput", "_process_message", "_takeSnapshot", "_malloc", "_free"]' \
            --js-library=$(SRC_DIR)/lib.js \
            --use-preload-cache
 
@@ -124,7 +124,7 @@ LDFLAGS += -sUSE_SDL=0
 LDFLAGS += -sWASM_WORKERS=0
 LDFLAGS += -sPTHREADS_DEBUG=1
 LDFLAGS += -sFETCH_DEBUG=1
-LDFLAGS += -sRUNTIME_DEBUG=1
+# LDFLAGS += -sRUNTIME_DEBUG=1
 LDFLAGS += -sFETCH=0
 LDFLAGS += -sWASMFS=0
 LDFLAGS += -sAUTO_JS_LIBRARIES=0

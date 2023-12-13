@@ -10,7 +10,7 @@
 
 void fxAbort(txMachine* the, int status)
 {
-	printf("aborting...\n"); // TODO
+	// printf("aborting...\n"); // TODO
 	switch (status) {
 	case XS_STACK_OVERFLOW_EXIT:
 		fxReport(the, "stack overflow\n");
@@ -109,7 +109,7 @@ void fxCreateMachinePlatform(txMachine* the)
 	size_t MB = 1024 * 1024;
 	the->allocationLimit = 256 * MB;
 
-	printf("Size of txSlot: %lu\n", sizeof(txSlot)); // TODO
+	// printf("Size of txSlot: %lu\n", sizeof(txSlot)); // TODO
 }
 
 void fxDeleteMachinePlatform(txMachine* the)
@@ -118,7 +118,7 @@ void fxDeleteMachinePlatform(txMachine* the)
 
 txSlot* fxAllocateSlots(txMachine* the, txSize theCount)
 {
-	printf("fxAllocateSlots: %i * %lu\n", theCount, sizeof(txSlot));
+	// printf("fxAllocateSlots: %i * %lu\n", theCount, sizeof(txSlot));
 	return (txSlot*)c_malloc(theCount * sizeof(txSlot));
 }
 
@@ -254,6 +254,7 @@ txID fxFindModule(txMachine* the, txSlot* realm, txID moduleID, txSlot* slot)
 
 void fxQueuePromiseJobs(txMachine* the)
 {
+	// TODO: What does this mean? Will this be a problem if there are multiple promise jobs queued?
 	the->promiseJobs = 1;
 }
 

@@ -7,6 +7,14 @@
     "jsnap_platform.h": "c",
     "xsall.h": "c",
     "xscommon.h": "c",
-    "xsplatform.h": "c"
+    "xsplatform.h": "c",
+    "chrono": "c",
+    "format": "c",
+    "ostream": "c",
+    "stdexcept": "c",
+    "system_error": "c",
+    "xlocale": "c",
+    "xlocbuf": "c",
+    "xloctime": "c"
   }
 }

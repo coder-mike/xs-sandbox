@@ -14,3 +14,164 @@ test('message to host', async () => {
   sandbox.evaluate("sendMessage({type: 'hello', message: 'world'});");
   assert.deepEqual(message, { type: 'hello', message: 'world' });
 });
+
+test('message to guest', async () => {
+  const sandbox = await XSSandbox.create();
+  sandbox.evaluate(`receiveMessage = function(message) {
+    return 'Hey, ' + message.message;
+  }`);
+  const response = sandbox.sendMessage({ type: 'hello', message: 'world' });
+  assert.deepEqual(response, 'Hey, world');
+});
+
+test('message both ways', async () => {
+  const sandbox = await XSSandbox.create();
+  let message: any;
+  sandbox.receiveMessage = (m) => message = m;
+  sandbox.evaluate(`receiveMessage = function(message) {
+    sendMessage({ received: message });
+  }`);
+  sandbox.sendMessage({ type: 'hello', message: 'world' });
+  assert.deepEqual(message, { received: { type: 'hello', message: 'world' } });
+});
+
+test('guest exception', async () => {
+  const sandbox = await XSSandbox.create();
+  assert.throws(
+    () => sandbox.evaluate(`throw new Error('Guest error')`),
+    { message: 'Error: Guest error' }
+  );
+});
+
+test('host exception', async () => {
+  const sandbox = await XSSandbox.create();
+
+  // The error thrown by the host will be logged to the console.
+  let loggedError;
+  const temp = console.error;
+  console.error = (e) => { loggedError = e };
+  try {
+    sandbox.receiveMessage = (m) => {
+      throw new Error('dummy error');
+    };
+    const result = sandbox.evaluate("sendMessage({type: 'hello', message: 'world'}); 42")
+    assert.deepEqual(result, 42);
+  } finally {
+    console.error = temp;
+  }
+  assert.deepEqual(loggedError, new Error('dummy error'));
+});
+
+test('take snapshot', async () => {
+  const sandbox = await XSSandbox.create();
+  let result = sandbox.evaluate("var i = 1");
+  result = sandbox.evaluate("++i");
+  assert.deepEqual(result, 2);
+
+  const snapshot = sandbox.snapshot();
+  assert(snapshot instanceof Uint8Array);
+  assert(snapshot.length > 0);
+  // Roughly the size I expect it to be. May need to change this if we upgrade
+  // the XS source.
+  assert(snapshot.length > 87000 && snapshot.length < 88000);
+});
+
+test('take and restore snapshot', async () => {
+  const sandbox1 = await XSSandbox.create();
+  let result = sandbox1.evaluate("var i = 1");
+  result = sandbox1.evaluate("++i");
+  assert.deepEqual(result, 2);
+
+  const snapshot = sandbox1.snapshot();
+  const sandbox2 = await XSSandbox.restore(snapshot);
+
+  result = sandbox2.evaluate("++i");
+  assert.deepEqual(result, 3);
+});
+
+test('event loop', async () => {
+  // This tests that the event loop is flushed before `sendMessage` returns
+  const sandbox = await XSSandbox.create();
+  const received: any[] = [];
+  sandbox.receiveMessage = (m) => received.push(m);
+  sandbox.evaluate(`receiveMessage = function(message) {
+    (async () => {
+      sendMessage('before await');
+      await Promise.resolve();
+      sendMessage('after await');
+    })();
+    sendMessage('after async func call');
+  }`);
+  sandbox.sendMessage();
+  assert.deepEqual(received, [
+    'before await',
+    'after async func call',
+    'after await'
+  ]);
+});
+
+test('promises across snapshots', async () => {
+  // This test simulates the situation where a host operation is awaited by the
+  // guest, and the guest is put to sleep before the host operation completes,
+  // and then woken up to process the result of the host operation in a new
+  // sandbox.
+
+  const sandbox1 = await XSSandbox.create();
+
+  const receivedMessages1: any[] = [];
+
+  sandbox1.receiveMessage = function (message) {
+    receivedMessages1.push(message);
+  }
+
+  sandbox1.evaluate(`
+    let nextTaskId = 1;
+    const pendingAsyncTasks = new Map();
+    function log1(s) {
+      sendMessage({ type: 'log', message: s });
+    }
+    function hostAsyncTask() {
+      return new Promise((resolve, reject) => {
+        const taskId = nextTaskId++;
+        sendMessage({ type: 'hostAsyncTask', taskId });
+        pendingAsyncTasks.set(taskId, { resolve, reject });
+      });
+    }
+    async function longTask() {
+      log1('before await');
+      await hostAsyncTask();
+      log1('after await');
+    }
+    receiveMessage = function(message) {
+      if (message.type === 'hostAsyncTask') {
+        longTask();
+      } else if (message.type === 'resolveAsyncTask') {
+        const task = pendingAsyncTasks.get(message.taskId);
+        task.resolve(message.result);
+      }
+    }
+  `);
+
+  sandbox1.sendMessage({ type: 'hostAsyncTask' });
+  assert.deepEqual(receivedMessages1, [
+    { type: 'log', message: 'before await' },
+    { type: 'hostAsyncTask', taskId: 1 },
+  ]);
+
+  const snapshot = sandbox1.snapshot();
+  const sandbox2 = await XSSandbox.restore(snapshot);
+  const receivedMessages2: any[] = [];
+  sandbox2.receiveMessage = function (message) {
+    receivedMessages2.push(message);
+  };
+
+  // Send result of async task
+  sandbox2.sendMessage({
+    type: 'resolveAsyncTask',
+    taskId: 1,
+    result: 'result'
+  });
+  assert.deepEqual(receivedMessages2, [
+    { type: 'log', message: 'after await' }
+  ]);
+});
