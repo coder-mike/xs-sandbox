@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "jsnap.h"
+#include "xs_sandbox.h"
 
 int main(int argc, char** argv) {
   const char* message = "World";

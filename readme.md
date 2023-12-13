@@ -1,8 +1,8 @@
-# JS Snapshotting
+# XS Sandbox
 
-This is an experiment to create a JavaScript sandbox (in a JavaScript host) that can be snapshotted.
+Secure and easy JavaScript sandbox with snapshotting support, with no dependencies or native modules. Compatible with Node.js or browser environment.
 
-This is under development. Have a look at [.dev-journal/](./.dev-journal/2023-12-02%20first%20steps.md) for my notes as I develope this.
+Internally uses WASM build of the XS JavaScript engine.
 
 
 ## Usage
@@ -12,7 +12,7 @@ Example:
 ```js
 import Sandbox from 'xs-sandbox';
 
-const sandbox = new Sandbox();
+const sandbox = Sandbox.create();
 
 sandbox.receiveMessage = function (message) {
   console.log(`Received message from sandbox: ${message}`)
@@ -45,7 +45,7 @@ Messages are sent between the host and the guest as JSON, so they cannot contain
 ## Known issues
 
 - I've had issues under node.js 18 with the WASM crashing, but it seems to be working ok in the browser and in node.js 20 (in Windows).
-- When building without optimization, there's a weird behavior where the `fxRunID` C function (compiled to WASM) seems to cause a spike in memory usage by multiple GB for a few seconds, and if running in Node then the node process takes some time to exit at the end (tens of seconds).
+- When building without optimization, there's a weird behavior where the `fxRunID` C function (compiled to WASM) seems to cause a spike in memory usage by multiple GB for a few seconds, and if running in Node then the node process takes some time to exit at the end (tens of seconds). The released version on npm is built with optimization and so doesn't have this problem.
 
 
 ## Maintainer notes

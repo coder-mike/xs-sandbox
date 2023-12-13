@@ -21,10 +21,10 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\jsnap.c">
+    <ClCompile Include="..\src\xs_sandbox.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\jsnap_platform.c">
+    <ClCompile Include="..\src\xs_sandbox_platform.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\wedge.c">
@@ -170,10 +170,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\jsnap.h">
+    <ClInclude Include="..\src\xs_sandbox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\jsnap_platform.h">
+    <ClInclude Include="..\src\xs_sandbox_platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\wedge.h">

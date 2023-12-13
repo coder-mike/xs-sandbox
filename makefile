@@ -11,9 +11,9 @@ MODULES_DIR=moddable/modules
 
 # Source Files
 SOURCES := \
-  $(SRC_DIR)/jsnap.c \
+  $(SRC_DIR)/xs_sandbox.c \
   $(SRC_DIR)/wedge.c \
-  $(SRC_DIR)/jsnap_platform.c \
+  $(SRC_DIR)/xs_sandbox_platform.c \
   $(XS_DIR)/sources/xsAll.c \
   $(XS_DIR)/sources/xsAPI.c \
   $(XS_DIR)/sources/xsArguments.c \
@@ -67,7 +67,7 @@ OBJECTS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(notdir $(SOURCES)))
 # Compilation Flags
 CFLAGS := -fno-common \
           -DINCLUDE_XSPLATFORM \
-          -DXSPLATFORM=\"jsnap_platform.h\" \
+          -DXSPLATFORM=\"xs_sandbox_platform.h\" \
           -DmxMetering=1 \
           -DmxParse=1 \
           -DmxRun=1 \

@@ -87,7 +87,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;INCLUDE_XSPLATFORM;XSPLATFORM="jsnap_platform.h";mxMetering=1;mxNoConsole=1;mxBoundsCheck=1;mxParse=1;mxRun=1;mxSloppy=1;mxSnapshot=1;mxRegExpUnicodePropertyEscapes=1;mxStringNormalize=1;mxMinusZero=1;mxDebug=1;WINDOWS_BUILD=1;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;INCLUDE_XSPLATFORM;XSPLATFORM="xs_sandbox_platform.h";mxMetering=1;mxNoConsole=1;mxBoundsCheck=1;mxParse=1;mxRun=1;mxSloppy=1;mxSnapshot=1;mxRegExpUnicodePropertyEscapes=1;mxStringNormalize=1;mxMinusZero=1;mxDebug=1;WINDOWS_BUILD=1;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Projects\js-snapshotting\moddable\xs\includes;C:\Projects\js-snapshotting\src;C:\Projects\js-snapshotting\moddable\xs\sources;C:\Projects\js-snapshotting\moddable\xs\platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4703;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -190,14 +190,14 @@
     <ClCompile Include="..\moddable\xs\sources\xsSyntaxical.c" />
     <ClCompile Include="..\moddable\xs\sources\xsTree.c" />
     <ClCompile Include="..\moddable\xs\sources\xsType.c" />
-    <ClCompile Include="..\src\jsnap.c" />
-    <ClCompile Include="..\src\jsnap_platform.c" />
+    <ClCompile Include="..\src\xs_sandbox.c" />
+    <ClCompile Include="..\src\xs_sandbox_platform.c" />
     <ClCompile Include="..\src\wedge.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\jsnap.h" />
-    <ClInclude Include="..\src\jsnap_platform.h" />
+    <ClInclude Include="..\src\xs_sandbox.h" />
+    <ClInclude Include="..\src\xs_sandbox_platform.h" />
     <ClInclude Include="..\src\wedge.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -2,9 +2,9 @@
   "files.associations": {
     "*.mvms": "javascript",
     "*.evm": "c",
-    "jsnap.h": "c",
+    "xs_sandbox.h": "c",
     "xs.h": "c",
-    "jsnap_platform.h": "c",
+    "xs_sandbox_platform.h": "c",
     "xsall.h": "c",
     "xscommon.h": "c",
     "xsplatform.h": "c",

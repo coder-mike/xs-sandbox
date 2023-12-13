@@ -1,4 +1,4 @@
-#include "jsnap.h"
+#include "xs_sandbox.h"
 #include "xs.h"
 #include "wedge.h"
 
@@ -136,7 +136,7 @@ uint8_t* process_message(uint8_t* buffer, size_t size, uint32_t* out_size) {
   xsCreation* creation = &_creation;
 
   printf("creating machine...\n");
-  machine = xsCreateMachine(creation, "jsnap", NULL);
+  machine = xsCreateMachine(creation, "xs_sandbox", NULL);
   populateGlobals(machine);
 
   printf("begin metering...\n");
