@@ -72,6 +72,7 @@ CFLAGS := -fno-common \
           -DmxParse=1 \
           -DmxRun=1 \
           -DmxSloppy=1 \
+          -DmxNoConsole=1 \
           -DmxSnapshot=1 \
           -DmxRegExpUnicodePropertyEscapes=1 \
           -DmxStringNormalize=1 \
@@ -105,31 +106,34 @@ LDFLAGS := -sINITIAL_MEMORY=4194304 \
            --js-library=$(SRC_DIR)/lib.js \
            --use-preload-cache
 
-# LDFLAGS += -g3
-# LDFLAGS += -fdebug-compilation-dir=..
+# LDFLAGS += -sSINGLE_FILE
 LDFLAGS += -sSTACK_OVERFLOW_CHECK=1
 LDFLAGS += -sASSERTIONS=2
 LDFLAGS += -sSAFE_HEAP=1
-# LDFLAGS += -sSINGLE_FILE
-LDFLAGS += -sSYSCALL_DEBUG=0
-LDFLAGS += -sSOCKET_DEBUG=1
-LDFLAGS += -sDYLINK_DEBUG=1
-LDFLAGS += -sFS_DEBUG=1
-LDFLAGS += -sWEBSOCKET_DEBUG=1
-LDFLAGS += -sASYNCIFY_DEBUG=2
-LDFLAGS += -sPROXY_POSIX_SOCKETS=0
-LDFLAGS += -sFILESYSTEM=0
-# LDFLAGS += -sDETERMINISTIC=1  # Doesn't seem to work
-LDFLAGS += -sUSE_SDL=0
-LDFLAGS += -sWASM_WORKERS=0
-LDFLAGS += -sPTHREADS_DEBUG=1
-LDFLAGS += -sFETCH_DEBUG=1
-# LDFLAGS += -sRUNTIME_DEBUG=1
-LDFLAGS += -sFETCH=0
-LDFLAGS += -sWASMFS=0
 LDFLAGS += -sAUTO_JS_LIBRARIES=0
 LDFLAGS += -sAUTO_NATIVE_LIBRARIES=0
 LDFLAGS += -sALLOW_UNIMPLEMENTED_SYSCALLS=0
+LDFLAGS += -sFETCH=0
+LDFLAGS += -sWASMFS=0
+LDFLAGS += -sPROXY_POSIX_SOCKETS=0
+LDFLAGS += -sFILESYSTEM=0
+LDFLAGS += -sUSE_SDL=0
+LDFLAGS += -sWASM_WORKERS=0
+
+# LDFLAGS += -g3
+# LDFLAGS += -fdebug-compilation-dir=..
+# LDFLAGS += -sSYSCALL_DEBUG=0
+# LDFLAGS += -sRUNTIME_DEBUG=1
+
+# LDFLAGS += -sDETERMINISTIC=1  # Doesn't seem to work
+
+# LDFLAGS += -sDYLINK_DEBUG=1
+# LDFLAGS += -sSOCKET_DEBUG=1
+# LDFLAGS += -sFS_DEBUG=1
+# LDFLAGS += -sWEBSOCKET_DEBUG=1
+# LDFLAGS += -sASYNCIFY_DEBUG=2
+# LDFLAGS += -sPTHREADS_DEBUG=1
+# LDFLAGS += -sFETCH_DEBUG=1
 
 # Makefile Rules
 all: $(DIST_DIR)/index.mjs
@@ -161,7 +165,7 @@ $(SRC_DIR)/wasm-wrapper.wasm: $(BUILD_DIR)/wasm-wrapper.wasm
 $(DIST_DIR)/wasm-wrapper.wasm: $(BUILD_DIR)/wasm-wrapper.wasm | $(DIST_DIR)
 	cp $< $@
 
-$(DIST_DIR)/index.mjs $(DIST_DIR)/index.js: $(SRC_DIR)/*.mts $(SRC_DIR)/*.mjs tsconfig.json $(SRC_DIR)/wasm-wrapper.wasm $(DIST_DIR)/wasm-wrapper.wasm | $(DIST_DIR)
+$(DIST_DIR)/index.mjs $(DIST_DIR)/index.js: $(SRC_DIR)/*.mts $(SRC_DIR)/wasm-wrapper.mjs tsconfig.json $(SRC_DIR)/wasm-wrapper.wasm $(DIST_DIR)/wasm-wrapper.wasm | $(DIST_DIR)
 	npx rollup --config rollup.config.mjs
 
 $(OBJ_DIR):
@@ -175,5 +179,6 @@ $(DIST_DIR):
 
 clean:
 	rm -rf $(OBJ_DIR) $(BUILD_DIR) $(DIST_DIR)
+	rm -f $(SRC_DIR)/wasm-wrapper.mjs $(SRC_DIR)/wasm-wrapper.wasm
 
 .PHONY: all clean

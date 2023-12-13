@@ -12,9 +12,9 @@
 - [ ] Enable optimization (and debug issues)
 - [ ] Fix stack checking (fxCheckCStack) in parsing and GC among other
 places.
-- [ ] ESModules.
 - [ ] Check the TODOs in code
 - [ ] Re-enable terser
 - [ ] Re-enable SINGLE_FILE
+- [ ] Support ESModules
 
 
