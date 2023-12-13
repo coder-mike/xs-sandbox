@@ -10,7 +10,6 @@
 
 void fxAbort(txMachine* the, int status)
 {
-	// printf("aborting...\n"); // TODO
 	switch (status) {
 	case XS_STACK_OVERFLOW_EXIT:
 		fxReport(the, "stack overflow\n");
@@ -100,16 +99,8 @@ void fxAbort(txMachine* the, int status)
 
 void fxCreateMachinePlatform(txMachine* the)
 {
-//#ifdef mxDebug
-//#ifdef mxInstrument
-//#else
-//	the->connection = mxNoSocket;
-//#endif
-//#endif
 	size_t MB = 1024 * 1024;
 	the->allocationLimit = 256 * MB;
-
-	// printf("Size of txSlot: %lu\n", sizeof(txSlot)); // TODO
 }
 
 void fxDeleteMachinePlatform(txMachine* the)

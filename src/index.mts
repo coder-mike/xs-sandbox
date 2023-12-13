@@ -28,7 +28,7 @@ export async function restore(snapshot: Uint8Array) {
   }
 }
 
-async function createWasmSandbox() {
+async function createWasmSandbox(): Promise<[any, XSSandbox]> {
   const wasm = await wasmWrapper({
     sendMessage: (ptr: number, len: number) => {
       try {

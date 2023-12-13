@@ -5,14 +5,41 @@ Secure and easy JavaScript sandbox with snapshotting support, with no dependenci
 Internally uses WASM build of the XS JavaScript engine.
 
 
-## Usage
-
-Example:
+## Usage: Evaluating Scripts
 
 ```js
 import Sandbox from 'xs-sandbox';
 
-const sandbox = Sandbox.create();
+const sandbox = await Sandbox.create();
+const result = sandbox.evaluate('1 + 1');
+console.log(result); // 2
+```
+
+## Usage: Snapshotting
+
+```js
+import Sandbox from 'xs-sandbox';
+
+const s1 = await Sandbox.create();
+s1.evaluate('var x = 1');
+console.log(s1.evaluate('++x')); // 2
+console.log(s1.evaluate('++x')); // 3
+
+const snapshot = s1.snapshot(); // snapshot as Uint8Array
+
+// Later, or on another machine
+const s2 = await Sandbox.restore(snapshot);
+console.log(s2.evaluate('++x')); // 4
+```
+
+An empty snapshot is about 85kB.
+
+## Usage: Message passing
+
+```js
+import Sandbox from 'xs-sandbox';
+
+const sandbox = await Sandbox.create();
 
 sandbox.receiveMessage = function (message) {
   console.log(`Received message from sandbox: ${message}`)
@@ -24,23 +51,54 @@ sandbox.evaluate(`
   }
 `);
 
-sandbox.sendMessage('message from host');
-
-const snapshot = sandbox.snapshot();
-
-// Later, or on another machine
-const anotherSandbox = Sandbox.restore(snapshot);
-anotherSandbox.receiveMessage = function (message) {
-  console.log(`Received message from sandbox: ${message}`)
-}
+// Send a message to the guest
+sandbox.sendMessage('Message from host');
 ```
 
-Within the sandbox, there are two special globals:
+Messages are encoded as JSON to be sent to/from the sandbox so only plain data types are supported.
 
-1. `receiveMessage` may be defined by the guest in order to receive messages sent by the host.
-2. `sendMessage` may be called by a guest to send messages to the host.
+Messages are passed *synchronously*. If you want asynchronous behavior you can wrap the sandbox in a `Worker` thread.
 
-Messages are sent between the host and the guest as JSON, so they cannot contain references to functions, etc.
+
+## Promises and the event loop
+
+The guest event loop is processed synchronously by `evaluate` and `sendMessage`, so there will never be pending jobs when `sendMessage` returns. Example:
+
+```js
+import Sandbox from 'xs-sandbox';
+
+const sandbox = await Sandbox.create();
+sandbox.receiveMessage = console.log;
+
+sandbox.evaluate(`
+  async function myAsyncFunc() {
+    sendMessage('before await');
+    await Promise.resolve();
+    sendMessage('after await');
+  }
+
+  sendMessage('before calling myAsyncFunc');
+  myAsyncFunc();
+  sendMessage('after calling myAsyncFunc');
+`);
+console.log('after evaluate');
+```
+
+This prints:
+
+1. before calling myAsyncFunc
+2. before await
+3. after calling myAsyncFunc
+4. after await
+5. after evaluate
+
+Points 4 and 5 show that the promise job queue is processed before `evaluate` returns.
+
+
+## Guest Environment and Globals
+
+The environment in which the guest script runs is a vanilla ECMAScript environment with no I/O APIs except `sendMessage` and `receiveMessage`. You can define your own APIs for the guest by first evaluating your own setup script which implements APIs in terms of `sendMessage` and `receiveMessage`.
+
 
 ## Known issues
 
@@ -70,6 +128,7 @@ To build the project:
 npm install
 npm run build
 ```
+
 
 ## License
 

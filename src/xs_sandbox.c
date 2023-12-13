@@ -9,8 +9,8 @@
 
 #define INITIAL_SNAPSHOT_CAPACITY 32 * 1024
 
-static const unsigned int meteringLimit = 1000000000; // TODO
-static const int meteringInterval = 1; // TODO
+static const unsigned int meteringLimit = 1000000000; // TODO: Metering
+static const int meteringInterval = 1; // TODO: Metering
 static const int parserBufferSize = 1024 * 1024;
 static const char SNAPSHOT_SIGNATURE[] = "xs-sandbox-1";
 static char* MACHINE_NAME = "xs-sandbox";

@@ -4,17 +4,19 @@
 - [x] Test promises across snapshots
 - [x] Rename jsnap to xs-sandbox
 - [x] Clean up unused functions like process_message
-- [ ] Test metering
+- [ ] Metering support
+- [ ] Console.log
+- [ ] Consider reentrancy
+- [ ] Instrumentation and debugging
+- [ ] Location information on exceptions
 - [ ] Check failure cases like metering expiry or other exception.
-- [ ] Check memory usage. Maybe try spinning up 1000 instance
-- [ ] Add back textdecoder and textencoder
-- [ ] Enable mxDebug (to get line numbers on exceptions, if we can)
-- [ ] Enable optimization (and debug issues)
-- [ ] Fix stack checking (fxCheckCStack) in parsing and GC among other
-places.
+- [ ] Check memory usage and performance. Maybe try spinning up 1000 instances.
+- [ ] Add TextDecoder and TextEncoder
 - [ ] Check the TODOs in code
+- [ ] Support ESModules
+
+- [ ] Re-enable optimization
 - [ ] Re-enable terser
 - [ ] Re-enable SINGLE_FILE
-- [ ] Support ESModules
 
 
