@@ -6,9 +6,10 @@
 - [x] Clean up unused functions like process_message
 - [ ] Metering support
 - [ ] Console.log
+- [ ] Location information on exceptions
 - [ ] Consider reentrancy
 - [ ] Instrumentation and debugging
-- [ ] Location information on exceptions
+- [ ] Test and document behavior of non-deterministic behavior
 - [ ] Check failure cases like metering expiry or other exception.
 - [ ] Check memory usage and performance. Maybe try spinning up 1000 instances.
 - [ ] Add TextDecoder and TextEncoder

@@ -36,10 +36,10 @@ xsCallback snapshotCallbacks[snapshotCallbackCount] = {
 static xsBooleanValue meteringCallback(xsMachine* the, xsUnsignedValue index)
 {
   //printf("Metering callback: %u\n", index);
-  if (index > meteringLimit) {
-    //printf("Metering limit hit: %u (limit: %u)\n", index, meteringLimit);
-    return 0;
-  }
+  // if (index > meteringLimit) {
+  //   //printf("Metering limit hit: %u (limit: %u)\n", index, meteringLimit);
+  //   return 0;
+  // }
   return 1;
 }
 

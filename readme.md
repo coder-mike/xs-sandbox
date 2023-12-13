@@ -1,8 +1,10 @@
 # XS Sandbox
 
+*Note: this library has not been published to npm yet.*
+
 Secure and easy JavaScript sandbox with snapshotting support, with no dependencies or native modules. Compatible with Node.js or browser environment.
 
-Internally uses WASM build of the XS JavaScript engine.
+Internally uses a WASM build of the XS JavaScript engine (guest scripts are not running in the same engine as the host and so are completely isolated).
 
 
 ## Usage: Evaluating Scripts
@@ -41,17 +43,20 @@ import Sandbox from 'xs-sandbox';
 
 const sandbox = await Sandbox.create();
 
+// Receive messages from the sandbox like this:
 sandbox.receiveMessage = function (message) {
   console.log(`Received message from sandbox: ${message}`)
 }
 
 sandbox.evaluate(`
+  // Receive messages from the host like this:
   globalThis.receiveMessage = function (message) {
+    // Send messages to the host like this:
     sendMessage('Received message from host: ' + message);
   }
 `);
 
-// Send a message to the guest
+// Send a message to the guest like this:
 sandbox.sendMessage('Message from host');
 ```
 
@@ -98,6 +103,8 @@ Points 4 and 5 show that the promise job queue is processed before `evaluate` re
 ## Guest Environment and Globals
 
 The environment in which the guest script runs is a vanilla ECMAScript environment with no I/O APIs except `sendMessage` and `receiveMessage`. You can define your own APIs for the guest by first evaluating your own setup script which implements APIs in terms of `sendMessage` and `receiveMessage`.
+
+**None of the host environments globals are available to the guest script!**
 
 
 ## Known issues
