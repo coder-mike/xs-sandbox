@@ -2,8 +2,8 @@
 - [x] Snapshotting
 - [x] Test event loop
 - [x] Test promises across snapshots
-- [ ] Clean up unused functions like process_message
-- [ ] Rename jsnap to xs-sandbox
+- [x] Rename jsnap to xs-sandbox
+- [x] Clean up unused functions like process_message
 - [ ] Test metering
 - [ ] Check failure cases like metering expiry or other exception.
 - [ ] Check memory usage. Maybe try spinning up 1000 instance

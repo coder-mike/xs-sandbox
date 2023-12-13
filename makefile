@@ -72,7 +72,6 @@ CFLAGS := -fno-common \
           -DmxParse=1 \
           -DmxRun=1 \
           -DmxSloppy=1 \
-          -DmxNoConsole=1 \
           -DmxSnapshot=1 \
           -DmxRegExpUnicodePropertyEscapes=1 \
           -DmxStringNormalize=1 \
@@ -86,9 +85,9 @@ CFLAGS := -fno-common \
           -I$(SRC_DIR) \
           -O2
 
+CFLAGS += -DmxNoConsole=1
 # CFLAGS += -g3
 # CFLAGS += -fdebug-compilation-dir=..
-# CFLAGS += -DmxNoConsole=1
 
 # The bounds checking seems to enable `fxCheckCStack` which doesn't work in WASM
 CFLAGS += -DmxBoundsCheck=0
@@ -102,7 +101,7 @@ LDFLAGS := -sINITIAL_MEMORY=4194304 \
            -sMODULARIZE=1 \
            -sEXPORT_ES6=1 \
            -sEXPORTED_RUNTIME_METHODS=ccall,cwrap \
-           -sEXPORTED_FUNCTIONS='["_initMachine", "_restoreSnapshot", "_sandboxInput", "_process_message", "_takeSnapshot", "_malloc", "_free"]' \
+           -sEXPORTED_FUNCTIONS='["_initMachine", "_restoreSnapshot", "_sandboxInput", "_takeSnapshot", "_malloc", "_free"]' \
            --js-library=$(SRC_DIR)/lib.js \
            --use-preload-cache
 
