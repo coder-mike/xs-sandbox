@@ -4,7 +4,7 @@
 
 Secure and easy JavaScript sandbox with snapshotting support, with no dependencies or native modules. Compatible with Node.js or browser environment.
 
-Internally uses a WASM build of the XS JavaScript engine (guest scripts are not running in the same engine as the host and so are completely isolated).
+Internally uses a WASM build of the XS JavaScript engine (guest scripts are not running in the same engine as the host and so are completely isolated). It's reasonably lightweight -- each instance is a few MB.
 
 
 ## Usage: Evaluating Scripts
@@ -63,6 +63,29 @@ sandbox.sendMessage('Message from host');
 Messages are encoded as JSON to be sent to/from the sandbox so only plain data types are supported.
 
 Messages are passed *synchronously*. If you want asynchronous behavior you can wrap the sandbox in a `Worker` thread.
+
+## Usage: Metering
+
+Metering allows you to set a limit on the amount of processing that the guest can do, which can be useful to catch infinite loops, especially if you don't trust the code. The `sandbox.meter` counter counts up as the guest executes instructions. If the limit is reached, the guest will halt and the sandbox will throw an exception.
+
+```js
+import Sandbox from 'xs-sandbox';
+
+const sandbox = await Sandbox.create({
+  meteringLimit: 5000,
+  meteringInterval: 1000,
+});
+
+try {
+  sandbox.evaluate('while (true) {}') // Infinite loop
+} catch (e) {
+  console.log(e); //"metering limit reached"
+  console.log(sandbox.meter);
+}
+```
+
+Be careful with meter limits because the limit can be hit at any time and it halts the machine without processing any catch blocks in the guest code, which may leave the guest in an inconsistent state.
+
 
 
 ## Promises and the event loop

@@ -4,10 +4,12 @@
 - [x] Test promises across snapshots
 - [x] Rename jsnap to xs-sandbox
 - [x] Clean up unused functions like process_message
-- [ ] Metering support
+- [x] Metering support
 - [ ] Console.log
+- [ ] Synchronous response from sendMessage
 - [ ] Location information on exceptions
 - [ ] Consider reentrancy
+- [ ] Consider reentrancy and snapshotting (e.g. snapshotting while the stack is active or snapshotting in the job queue).
 - [ ] Instrumentation and debugging
 - [ ] Test and document behavior of non-deterministic behavior
 - [ ] Check failure cases like metering expiry or other exception.

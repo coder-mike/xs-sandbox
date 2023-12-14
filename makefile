@@ -101,7 +101,7 @@ LDFLAGS := -sINITIAL_MEMORY=4194304 \
            -sMODULARIZE=1 \
            -sEXPORT_ES6=1 \
            -sEXPORTED_RUNTIME_METHODS=ccall,cwrap \
-           -sEXPORTED_FUNCTIONS='["_initMachine", "_restoreSnapshot", "_sandboxInput", "_takeSnapshot", "_malloc", "_free"]' \
+           -sEXPORTED_FUNCTIONS='["_initMachine", "_restoreSnapshot", "_sandboxInput", "_takeSnapshot", "_malloc", "_free", "_getMeteringLimit", "_setMeteringLimit", "_getMeteringInterval", "_setMeteringInterval", "_getActive", "_getMeteringCount"]' \
            --js-library=$(SRC_DIR)/lib.js \
            --use-preload-cache
 
@@ -135,7 +135,7 @@ LDFLAGS += -sWASM_WORKERS=0
 # LDFLAGS += -sFETCH_DEBUG=1
 
 # Makefile Rules
-all: $(DIST_DIR)/index.mjs
+all: $(DIST_DIR)/index.mjs $(DIST_DIR)/index.d.ts
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -164,8 +164,11 @@ $(SRC_DIR)/wasm-wrapper.wasm: $(BUILD_DIR)/wasm-wrapper.wasm
 $(DIST_DIR)/wasm-wrapper.wasm: $(BUILD_DIR)/wasm-wrapper.wasm | $(DIST_DIR)
 	cp $< $@
 
-$(DIST_DIR)/index.mjs $(DIST_DIR)/index.js: $(SRC_DIR)/*.mts $(SRC_DIR)/wasm-wrapper.mjs tsconfig.json $(SRC_DIR)/wasm-wrapper.wasm $(DIST_DIR)/wasm-wrapper.wasm | $(DIST_DIR)
+$(DIST_DIR)/index.mjs $(DIST_DIR)/index.js $(DIST_DIR)/index.d.mts: $(SRC_DIR)/*.mts $(SRC_DIR)/wasm-wrapper.mjs tsconfig.json $(SRC_DIR)/wasm-wrapper.wasm $(DIST_DIR)/wasm-wrapper.wasm | $(DIST_DIR)
 	npx rollup --config rollup.config.mjs
+
+$(DIST_DIR)/index.d.ts: $(DIST_DIR)/index.d.mts
+	cp $< $@
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)

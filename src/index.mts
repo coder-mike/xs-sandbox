@@ -3,6 +3,22 @@ import wasmWrapper from './wasm-wrapper.mjs';
 const EC_OK_VALUE = 0; // Ok with return value
 const EC_OK_UNDEFINED = 1; // Ok with return undefined
 const EC_EXCEPTION = 2; // Returned exception message (string)
+const EC_METERING_LIMIT_REACHED = 3; // Hit metering limit
+
+export interface XSSandboxOptions {
+  /**
+   * The interval (in milliseconds) at which the metering counter is incremented.
+   * The default is 1000.
+   */
+  meteringInterval?: number;
+
+  /**
+   * The maximum value of the metering counter. Once this value is reached, the
+   * sandbox will halt. The default is none.
+   */
+  meteringLimit?: number;
+
+}
 
 export class XSSandboxError extends Error {
   constructor(message: string) {
@@ -10,14 +26,14 @@ export class XSSandboxError extends Error {
   }
 }
 
-export async function create() {
-  const [wasm, sandbox] = await createWasmSandbox();
+export async function create(opts?: XSSandboxOptions) {
+  const [wasm, sandbox] = await createWasmSandbox(opts ?? {});
   wasm.ccall('initMachine', null, [], []);
   return sandbox;
 }
 
-export async function restore(snapshot: Uint8Array) {
-  const [wasm, sandbox] = await createWasmSandbox();
+export async function restore(snapshot: Uint8Array, opts?: XSSandboxOptions) {
+  const [wasm, sandbox] = await createWasmSandbox(opts ?? {});
 
   const result = wasm.ccall('restoreSnapshot', null, ['array', 'number'], [snapshot, snapshot.length]);
 
@@ -28,7 +44,7 @@ export async function restore(snapshot: Uint8Array) {
   }
 }
 
-async function createWasmSandbox(): Promise<[any, XSSandbox]> {
+async function createWasmSandbox(opts: XSSandboxOptions): Promise<[any, XSSandbox]> {
   const wasm = await wasmWrapper({
     sendMessage: (ptr: number, len: number) => {
       try {
@@ -41,7 +57,7 @@ async function createWasmSandbox(): Promise<[any, XSSandbox]> {
       }
     }
   });
-  const sandbox = new XSSandbox(wasm);
+  const sandbox = new XSSandbox(wasm, opts);
   return [wasm, sandbox];
 }
 
@@ -52,7 +68,9 @@ class XSSandbox {
    */
   receiveMessage?: (message: any) => void;
 
-  constructor(private wasm: any) {
+  constructor(private wasm: any, opts: XSSandboxOptions) {
+    this.meteringInterval = opts.meteringInterval ?? 1000;
+    this.meteringLimit = opts.meteringLimit;
   }
 
   /**
@@ -108,6 +126,40 @@ class XSSandbox {
       this.wasm._free(outputSizePtr);
     }
   }
+
+  get active() {
+    return this.wasm.ccall('getActive', 'number', [], []) !== 0;
+  }
+
+  get meteringInterval() {
+    return this.wasm.ccall('getMeteringInterval', 'number', [], []);
+  }
+
+  set meteringInterval(value: number) {
+    if (this.active) {
+      throw new Error('Cannot set metering interval while active');
+    }
+    if (value < 1) {
+      throw new Error('Metering interval must be at least 1');
+    }
+    this.wasm.ccall('setMeteringInterval', null, ['number'], [value]);
+  }
+
+  get meteringLimit(): number | undefined {
+    const value = this.wasm.ccall('getMeteringLimit', 'number', [], []);
+    return value ? value : undefined;
+  }
+
+  set meteringLimit(value: number | undefined) {
+    if (this.active) {
+      throw new Error('Cannot set metering limit while active');
+    }
+    this.wasm.ccall('setMeteringLimit', null, ['number'], [value ?? 0]);
+  }
+
+  get meter() {
+    return this.wasm.ccall('getMeteringCount', 'number', [], []);
+  }
 }
 
 // Shared logic for evaluate and sendMessage
@@ -154,6 +206,8 @@ function sandboxInput(wasm: any, payload: string, action: 0 | 1) {
         // Free returned memory
         wasm._free(outputPtr);
       }
+    } else  if (code === EC_METERING_LIMIT_REACHED) {
+      throw new Error('Metering limit reached');
     } else {
       throw new Error(`Unexpected return code ${code}`);
     }

@@ -8,6 +8,7 @@ typedef enum ErrorCode {
   EC_OK_VALUE = 0, // Ok with return value
   EC_OK_UNDEFINED = 1, // Ok with return undefined
   EC_EXCEPTION = 2, // Returned exception message (string)
+  EC_METERING_LIMIT_REACHED = 3, // Hit metering limit
 } ErrorCode;
 
 // Called by host

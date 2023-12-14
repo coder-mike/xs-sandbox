@@ -6,11 +6,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define INITIAL_SNAPSHOT_CAPACITY 32 * 1024
 
-static const unsigned int meteringLimit = 1000000000; // TODO: Metering
-static const int meteringInterval = 1; // TODO: Metering
+static uint32_t meteringLimit = 0;
+static uint32_t meteringInterval = 0;
+static uint32_t lastMeterValue = 0;
 static const int parserBufferSize = 1024 * 1024;
 static const char SNAPSHOT_SIGNATURE[] = "xs-sandbox-1";
 static char* MACHINE_NAME = "xs-sandbox";
@@ -22,6 +24,7 @@ typedef struct TsSnapshotStream {
 } TsSnapshotStream;
 
 static xsMachine* machine;
+static bool active = false;
 
 // Function callable by the guest to send a command to the host
 void host_sendMessage(xsMachine* the);
@@ -33,14 +36,38 @@ xsCallback snapshotCallbacks[snapshotCallbackCount] = {
   host_sendMessage,
 };
 
-static xsBooleanValue meteringCallback(xsMachine* the, xsUnsignedValue index)
-{
-  //printf("Metering callback: %u\n", index);
-  // if (index > meteringLimit) {
-  //   //printf("Metering limit hit: %u (limit: %u)\n", index, meteringLimit);
-  //   return 0;
-  // }
-  return 1;
+static xsBooleanValue meteringCallback(xsMachine* the, xsUnsignedValue index) {
+  if (!meteringLimit) return 1;
+  lastMeterValue = index;
+  return index < meteringLimit;
+}
+
+uint32_t getMeteringLimit() {
+  return meteringLimit;
+}
+
+void setMeteringLimit(uint32_t limit) {
+  meteringLimit = limit;
+}
+
+uint32_t getMeteringInterval() {
+  return meteringInterval;
+}
+
+void setMeteringInterval(uint32_t interval) {
+  meteringInterval = interval;
+}
+
+uint32_t getActive() {
+  return active;
+}
+
+uint32_t getMeteringCount() {
+  if (active) {
+    return xsGetCurrentMeter(machine);
+  } else {
+    return lastMeterValue;
+  }
 }
 
 void populateGlobals(xsMachine* the) {
@@ -177,67 +204,93 @@ void initMachine() {
   populateGlobals(machine);
 }
 
+/**
+ * Handle input from host when reentering the sandbox
+ */
+static ErrorCode sandboxInputReenter(uint8_t* payload, uint32_t** out_buffer, uint32_t* out_size, int action) {
+  *out_buffer = NULL;
+  *out_size = 0;
+  ErrorCode code = EC_OK_UNDEFINED;
+
+  xsMachine* the = machine;
+  xsVars(3);
+  xsTry {
+    xsVar(0) = xsString(payload);
+
+    if (action == 0) {
+      xsVar(1) = xsCall1(xsGlobal, xsID("eval"), xsVar(0));
+    } else {
+      xsVar(1) = xsGet(xsGlobal, xsID("JSON"));
+      xsVar(1) = xsCall1(xsVar(1), xsID("parse"), xsVar(0));
+      xsVar(0) = xsGet(xsGlobal, xsID("receiveMessage"));
+      if (xsTypeOf(xsVar(0)) != xsUndefinedType) {
+        xsVar(1) = xsCall1(xsGlobal, xsID("receiveMessage"), xsVar(1));
+      }
+    }
+
+    char* result;
+    if (xsTypeOf(xsVar(1)) != xsUndefinedType) {
+      xsVar(0) = xsGet(xsGlobal, xsID("JSON"));
+      xsVar(0) = xsCall1(xsVar(0), xsID("stringify"), xsVar(1));
+      result = xsToString(xsVar(0));
+      *out_buffer = malloc(strlen(result) + 1);
+      strcpy((char*)*out_buffer, result);
+      *out_size = strlen(result);
+      code = EC_OK_VALUE;
+    } else {
+      *out_buffer = NULL;
+      *out_size = 0;
+      code = EC_OK_UNDEFINED;
+    }
+  }
+  xsCatch {
+    code = EC_EXCEPTION;
+    xsSetCurrentMeter(machine, 1000000000);
+    char* message;
+    if (xsTypeOf(xsException) != xsUndefinedType) {
+      message = xsToString(xsException);
+    } else {
+      message = "Unknown exception";
+    }
+    *out_buffer = malloc(strlen(message) + 1);
+    *out_size = strlen(message);
+    strcpy((char*)*out_buffer, message);
+    xsException = xsUndefined;
+  }
+  return code;
+}
+
+/**
+ * Handle input from host (evaluate or sendMessage)
+ */
 ErrorCode sandboxInput(uint8_t* payload, uint32_t** out_buffer, uint32_t* out_size, int action) {
+  if (active) {
+    return sandboxInputReenter(payload, out_buffer, out_size, action);
+  }
+  active = true;
   *out_buffer = NULL;
   *out_size = 0;
   ErrorCode code = EC_OK_UNDEFINED;
   xsBeginMetering(machine, meteringCallback, meteringInterval);
   {
-    xsSetCurrentMeter(machine, 10000);
     xsBeginHost(machine);
     {
-      xsVars(3);
-      xsTry {
-        xsVar(0) = xsString(payload);
-
-        if (action == 0) {
-          xsVar(1) = xsCall1(xsGlobal, xsID("eval"), xsVar(0));
-        } else {
-          xsVar(1) = xsGet(xsGlobal, xsID("JSON"));
-          xsVar(1) = xsCall1(xsVar(1), xsID("parse"), xsVar(0));
-          xsVar(0) = xsGet(xsGlobal, xsID("receiveMessage"));
-          if (xsTypeOf(xsVar(0)) != xsUndefinedType) {
-            xsVar(1) = xsCall1(xsGlobal, xsID("receiveMessage"), xsVar(1));
-          }
-        }
-
-        char* result;
-        if (xsTypeOf(xsVar(1)) != xsUndefinedType) {
-          xsVar(0) = xsGet(xsGlobal, xsID("JSON"));
-          xsVar(0) = xsCall1(xsVar(0), xsID("stringify"), xsVar(1));
-          result = xsToString(xsVar(0));
-          *out_buffer = malloc(strlen(result) + 1);
-          strcpy((char*)*out_buffer, result);
-          *out_size = strlen(result);
-          code = EC_OK_VALUE;
-        } else {
-          *out_buffer = NULL;
-          *out_size = 0;
-          code = EC_OK_UNDEFINED;
-        }
-      }
-      xsCatch {
-        code = EC_EXCEPTION;
-        xsSetCurrentMeter(machine, 1000000000);
-        char* message;
-        if (xsTypeOf(xsException) != xsUndefinedType) {
-          message = xsToString(xsException);
-        } else {
-          message = "Unknown exception";
-        }
-        *out_buffer = malloc(strlen(message) + 1);
-        *out_size = strlen(message);
-        strcpy((char*)*out_buffer, message);
-        xsException = xsUndefined;
-      }
+      code = sandboxInputReenter(payload, out_buffer, out_size, action);
     }
     // TODO: What happens when there's an exception and we try run the loop? And
     // is it possible for the loop to throw more exceptions?
     // TODO: What happens if the meter ran out before we process the loop?
     xsRunLoop(machine);
     xsEndHost(machine);
+    lastMeterValue = xsGetCurrentMeter(machine);
   }
   xsEndMetering(machine);
+
+  if (meteringLimit && (lastMeterValue > meteringLimit)) {
+    code = EC_METERING_LIMIT_REACHED;
+  }
+
+  active = false;
   return code;
 }
 

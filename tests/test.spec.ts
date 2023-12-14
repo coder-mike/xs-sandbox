@@ -102,7 +102,7 @@ test('event loop', async () => {
     })();
     sendMessage('after async func call');
   }`);
-  sandbox.sendMessage();
+  sandbox.sendMessage(null);
   assert.deepEqual(received, [
     'before await',
     'after async func call',
@@ -174,4 +174,69 @@ test('promises across snapshots', async () => {
   assert.deepEqual(receivedMessages2, [
     { type: 'log', message: 'after await' }
   ]);
+});
+
+test('meter measurement', async () => {
+  // The meter values in this test are empirically determined. They may change
+  // if we upgrade the XS source.
+
+  const sandbox = await XSSandbox.create();
+  const meterValues: number[] = [];
+  sandbox.receiveMessage = m => meterValues.push(sandbox.meter);
+  assert.equal(sandbox.meter, 0);
+  sandbox.evaluate(`for (let i = 0; i < 10; i++) {
+    sendMessage(null);
+  }`);
+  // To make it easy to determine what kind of meter limit to set, the meter is
+  // sticky. It doesn't reset to zero when control returns to the host.
+  assert.equal(sandbox.meter, 276);
+
+  assert.deepEqual(meterValues, [35, 60, 85, 110, 135, 160, 185, 210, 235, 260]);
+});
+
+test('meter limit', async () => {
+  const sandbox = await XSSandbox.create({
+    meteringInterval: 1,
+    meteringLimit: 150
+  });
+  assert.equal(sandbox.meteringInterval, 1);
+  assert.equal(sandbox.meteringLimit, 150);
+  const meterValues: number[] = [];
+  sandbox.receiveMessage = m => meterValues.push(sandbox.meter);
+  assert.equal(sandbox.meter, 0);
+  assert.throws(() => {
+    sandbox.evaluate(`for (;;) {
+      sendMessage(null);
+    }`),
+    'Metering limit reached'
+  });
+  // To make it easy to determine what kind of meter limit to set, the meter is
+  // sticky. It doesn't reset to zero when control returns to the host.
+  assert.equal(sandbox.meter, 160);
+
+  assert.deepEqual(meterValues, [25, 40, 55, 70, 85, 100, 115, 130, 145, 160]);
+});
+
+test('meter ignores guest catch blocks', async () => {
+  const sandbox = await XSSandbox.create({
+    meteringInterval: 1,
+    meteringLimit: 150
+  });
+  assert.equal(sandbox.meteringInterval, 1);
+  assert.equal(sandbox.meteringLimit, 150);
+  const messages: string[] = [];
+  sandbox.receiveMessage = m => messages.push(m);
+  assert.equal(sandbox.meter, 0);
+  assert.throws(() => {
+    sandbox.evaluate(`
+      try {
+        for (;;) ;
+      catch (e) {
+        sendMessage('caught');
+      }
+    }`),
+    'Metering limit reached'
+  });
+  // The catch statement never executed
+  assert.deepEqual(messages, []);
 });
