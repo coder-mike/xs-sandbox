@@ -226,9 +226,11 @@ function sandboxInput(wasm: any, payload: string, action: 0 | 1) {
         const outputSize = wasm.HEAPU32[outputSizePtr / 4];
         const bytes = new Uint8Array(wasm.HEAPU8.buffer, outputPtr, outputSize);
         const str = new TextDecoder().decode(bytes);
-        const err = JSON.parse(str);
-        const message = err.message;
-        throw new XSSandboxError(message);
+        const value = JSON.parse(str);
+        const error = new XSSandboxError(value.message);
+        error.name = value.name;
+        error.stack = value.stack;
+        throw error;
       } finally {
         // Free returned memory
         wasm._free(outputPtr);

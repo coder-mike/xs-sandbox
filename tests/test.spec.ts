@@ -275,3 +275,16 @@ test('return undefined from host receiveMessage', async () => {
   const response = sandbox.sendMessage('hello');
   assert.deepEqual(response, 'result was undefined');
 });
+
+test('exception stack', async () => {
+  const sandbox = await XSSandbox.create();
+  sandbox.evaluate(`
+    receiveMessage = function(message) {
+      throw new Error('guest error');
+    }
+  `)
+  assert.throws(
+    () => sandbox.sendMessage('hello'),
+    { stack: 'Error: guest error\n at receiveMessage (#0:3)' }
+  );
+});

@@ -253,6 +253,12 @@ static ErrorCode sandboxInputReenter(uint8_t* payload, uint32_t** out_buffer, ui
         // Copy message property
         xsVar(1) = xsGet(xsException, xsID("message"));
         xsSet(xsVar(0), xsID("message"), xsVar(1));
+        // Copy stack property
+        xsVar(1) = xsGet(xsException, xsID("stack"));
+        xsSet(xsVar(0), xsID("stack"), xsVar(1));
+        // Copy name property
+        xsVar(1) = xsGet(xsException, xsID("name"));
+        xsSet(xsVar(0), xsID("name"), xsVar(1));
       } else {
         // Just do `exception.toString()` to infer a message
         xsVar(1) = xsCall0(xsException, xsID("toString"));
