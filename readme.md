@@ -66,7 +66,7 @@ Messages are passed *synchronously*. If you want asynchronous behavior you can w
 
 ## Usage: Metering
 
-Metering allows you to set a limit on the amount of processing that the guest can do, which can be useful to catch infinite loops, especially if you don't trust the code. The `sandbox.meter` counter counts up as the guest executes instructions. If the limit is reached, the guest will halt and the sandbox will throw an exception.
+Metering allows you to set a limit on the amount of processing that the guest can do, which can be useful to catch infinite loops, especially if you don't trust the guest code. The `sandbox.meter` counter counts up as the guest executes instructions. If the limit is reached, the guest will halt and the sandbox will throw an exception.
 
 ```js
 import Sandbox from 'xs-sandbox';
@@ -79,12 +79,12 @@ const sandbox = await Sandbox.create({
 try {
   sandbox.evaluate('while (true) {}') // Infinite loop
 } catch (e) {
-  console.log(e); //"metering limit reached"
+  console.log(e); // "metering limit reached"
   console.log(sandbox.meter);
 }
 ```
 
-Be careful with meter limits because the limit can be hit at any time and it halts the machine without processing any catch blocks in the guest code, which may leave the guest in an inconsistent state.
+Be careful with meter limits because the limit can be hit at any time and it halts the machine without processing any catch blocks in the guest code, which may leave the guest in an inconsistent state. It is strongly recommended not to use the sandbox again after it has hit a metering limit.
 
 
 

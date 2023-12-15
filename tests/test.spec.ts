@@ -39,27 +39,40 @@ test('guest exception', async () => {
   const sandbox = await XSSandbox.create();
   assert.throws(
     () => sandbox.evaluate(`throw new Error('Guest error')`),
-    { message: 'Error: Guest error' }
+    { message: 'Guest error' }
+  );
+});
+
+test('guest non-error exception', async () => {
+  const sandbox = await XSSandbox.create();
+  assert.throws(
+    () => sandbox.evaluate(`throw 42`),
+    { message: '42' }
   );
 });
 
 test('host exception', async () => {
   const sandbox = await XSSandbox.create();
 
-  // The error thrown by the host will be logged to the console.
-  let loggedError;
-  const temp = console.error;
-  console.error = (e) => { loggedError = e };
-  try {
-    sandbox.receiveMessage = (m) => {
-      throw new Error('dummy error');
-    };
-    const result = sandbox.evaluate("sendMessage({type: 'hello', message: 'world'}); 42")
-    assert.deepEqual(result, 42);
-  } finally {
-    console.error = temp;
-  }
-  assert.deepEqual(loggedError, new Error('dummy error'));
+  sandbox.receiveMessage = (m) => {
+    throw new Error('dummy error');
+  };
+  assert.throws(
+    () => sandbox.evaluate("sendMessage({type: 'hello', message: 'world'}); 42"),
+    { message: 'dummy error' }
+  )
+});
+
+test('host non-error exception', async () => {
+  const sandbox = await XSSandbox.create();
+
+  sandbox.receiveMessage = (m) => {
+    throw 123;
+  };
+  assert.throws(
+    () => sandbox.evaluate("sendMessage({type: 'hello', message: 'world'}); 42"),
+    { message: '123' }
+  )
 });
 
 test('take snapshot', async () => {
@@ -189,9 +202,9 @@ test('meter measurement', async () => {
   }`);
   // To make it easy to determine what kind of meter limit to set, the meter is
   // sticky. It doesn't reset to zero when control returns to the host.
-  assert.equal(sandbox.meter, 276);
+  assert.equal(sandbox.meter, 322);
 
-  assert.deepEqual(meterValues, [35, 60, 85, 110, 135, 160, 185, 210, 235, 260]);
+  assert.deepEqual(meterValues, [35,64,93,122,151,180,209,238,267,296]);
 });
 
 test('meter limit', async () => {
@@ -212,9 +225,9 @@ test('meter limit', async () => {
   });
   // To make it easy to determine what kind of meter limit to set, the meter is
   // sticky. It doesn't reset to zero when control returns to the host.
-  assert.equal(sandbox.meter, 160);
+  assert.equal(sandbox.meter, 162);
 
-  assert.deepEqual(meterValues, [25, 40, 55, 70, 85, 100, 115, 130, 145, 160]);
+  assert.deepEqual(meterValues, [25,44,63,82,101,120,139,158]);
 });
 
 test('meter ignores guest catch blocks', async () => {
@@ -239,4 +252,26 @@ test('meter ignores guest catch blocks', async () => {
   });
   // The catch statement never executed
   assert.deepEqual(messages, []);
+});
+
+test('return value from host receiveMessage', async () => {
+  const sandbox = await XSSandbox.create();
+  sandbox.receiveMessage = m => `host received: ${m}`;
+  sandbox.evaluate(`receiveMessage = function(message) {
+    return 'guest received response: ' + sendMessage('guest received: ' + message);
+  }`);
+  const response = sandbox.sendMessage('hello');
+  assert.deepEqual(response, 'guest received response: host received: guest received: hello');
+});
+
+test('return undefined from host receiveMessage', async () => {
+  const sandbox = await XSSandbox.create();
+  sandbox.receiveMessage = m => undefined;
+  sandbox.evaluate(`receiveMessage = function(message) {
+    const result = sendMessage(message)
+
+    return 'result was ' + (result === undefined ? 'undefined' : 'not undefined');
+  }`);
+  const response = sandbox.sendMessage('hello');
+  assert.deepEqual(response, 'result was undefined');
 });

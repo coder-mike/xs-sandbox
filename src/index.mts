@@ -46,14 +46,36 @@ export async function restore(snapshot: Uint8Array, opts?: XSSandboxOptions) {
 
 async function createWasmSandbox(opts: XSSandboxOptions): Promise<[any, XSSandbox]> {
   const wasm = await wasmWrapper({
-    sendMessage: (ptr: number, len: number) => {
+    sendMessage: (ptr: number, len: number, outputPtrPtr: number, outputSizePtr: number) => {
+      wasm.HEAPU32[outputPtrPtr / 4] = 0;
+      wasm.HEAPU32[outputSizePtr / 4] = 0;
       try {
         const bytes = new Uint8Array(wasm.HEAPU8.buffer, ptr, len);
         const str = new TextDecoder().decode(bytes);
         const message = JSON.parse(str);
-        sandbox.receiveMessage?.(message);
+
+        const result = sandbox.receiveMessage?.(message);
+
+        if (result === undefined) {
+          return EC_OK_UNDEFINED;
+        } else {
+          const strResult = JSON.stringify(result ?? null);
+          const bytesResult = new TextEncoder().encode(strResult + '\0');
+          const outputPtr = wasm._malloc(bytesResult.length);
+          wasm.HEAPU8.set(bytesResult, outputPtr);
+          wasm.HEAPU32[outputPtrPtr / 4] = outputPtr;
+          wasm.HEAPU32[outputSizePtr / 4] = bytesResult.length - 1;
+          return EC_OK_VALUE;
+        }
       } catch (e) {
-        console.error(e);
+        const errStr = e instanceof Error ? { message: e.message } : { message: e.toString() };
+        const strResult = JSON.stringify(errStr);
+        const bytesResult = new TextEncoder().encode(strResult + '\0');
+        const outputPtr = wasm._malloc(bytesResult.length);
+        wasm.HEAPU8.set(bytesResult, outputPtr);
+        wasm.HEAPU32[outputPtrPtr / 4] = outputPtr;
+        wasm.HEAPU32[outputSizePtr / 4] = bytesResult.length - 1;
+        return EC_EXCEPTION;
       }
     }
   });
@@ -100,6 +122,9 @@ class XSSandbox {
    * @returns A snapshot of the current state of the sandbox.
    */
   snapshot() {
+    if (this.active) {
+      throw new Error('Cannot take snapshot while sandbox is active');
+    }
     // Memory slot to receive output size
     const outputSizePtr = this.wasm._malloc(4);
     // Memory slot to receive pointer to output buffer
@@ -201,7 +226,9 @@ function sandboxInput(wasm: any, payload: string, action: 0 | 1) {
         const outputSize = wasm.HEAPU32[outputSizePtr / 4];
         const bytes = new Uint8Array(wasm.HEAPU8.buffer, outputPtr, outputSize);
         const str = new TextDecoder().decode(bytes);
-        throw new XSSandboxError(str);
+        const err = JSON.parse(str);
+        const message = err.message;
+        throw new XSSandboxError(message);
       } finally {
         // Free returned memory
         wasm._free(outputPtr);

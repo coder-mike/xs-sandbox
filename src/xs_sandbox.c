@@ -29,7 +29,7 @@ static bool active = false;
 // Function callable by the guest to send a command to the host
 void host_sendMessage(xsMachine* the);
 
-extern void sendMessage(uint8_t* buffer, size_t size);
+extern ErrorCode sendMessage(uint8_t* buffer, size_t size, uint8_t** outputPtrPtr, size_t* outputSizePtr);
 
 #define snapshotCallbackCount 1
 xsCallback snapshotCallbacks[snapshotCallbackCount] = {
@@ -246,12 +246,26 @@ static ErrorCode sandboxInputReenter(uint8_t* payload, uint32_t** out_buffer, ui
   xsCatch {
     code = EC_EXCEPTION;
     xsSetCurrentMeter(machine, 1000000000);
-    char* message;
+    // New object to send serialized error
+    xsVar(0) = xsNewObject();
     if (xsTypeOf(xsException) != xsUndefinedType) {
-      message = xsToString(xsException);
+      if (xsIsInstanceOf(xsException, xsErrorPrototype)) {
+        // Copy message property
+        xsVar(1) = xsGet(xsException, xsID("message"));
+        xsSet(xsVar(0), xsID("message"), xsVar(1));
+      } else {
+        // Just do `exception.toString()` to infer a message
+        xsVar(1) = xsCall0(xsException, xsID("toString"));
+        xsSet(xsVar(0), xsID("message"), xsVar(1));
+      }
     } else {
-      message = "Unknown exception";
+      xsVar(1) = xsString("Unknown error");
+      xsSet(xsVar(0), xsID("message"), xsVar(1));
     }
+    // Serialize error
+    xsVar(1) = xsGet(xsGlobal, xsID("JSON"));
+    xsVar(0) = xsCall1(xsVar(1), xsID("stringify"), xsVar(0));
+    char* message = xsToString(xsVar(0));
     *out_buffer = malloc(strlen(message) + 1);
     *out_size = strlen(message);
     strcpy((char*)*out_buffer, message);
@@ -295,10 +309,40 @@ ErrorCode sandboxInput(uint8_t* payload, uint32_t** out_buffer, uint32_t* out_si
 }
 
 void host_sendMessage(xsMachine* the) {
-  xsVars(1);
+  xsVars(2);
   xsVar(0) = xsGet(xsGlobal, xsID("JSON"));
   xsVar(0) = xsCall1(xsVar(0), xsID("stringify"), xsArg(0));
   const char* message = xsToString(xsVar(0));
   size_t messageSize = strlen(message);
-  sendMessage((uint8_t*)message, messageSize);
+  size_t outputSize = 0;
+  uint8_t* outputPtr = NULL;
+  ErrorCode code = sendMessage((uint8_t*)message, messageSize, &outputPtr, &outputSize);
+
+  if (code == EC_OK_UNDEFINED) {
+    xsResult = xsUndefined;
+    return;
+  }
+
+  xsTry {
+    xsVar(0) = xsString((char*)outputPtr);
+    xsVar(1) = xsGet(xsGlobal, xsID("JSON"));
+    xsVar(0) = xsCall1(xsVar(1), xsID("parse"), xsVar(0));
+    if (code == EC_OK_VALUE) {
+      xsResult = xsVar(0);
+    } else if (code == EC_EXCEPTION) {
+      xsVar(0) = xsGet(xsVar(0), xsID("message"));
+      xsVar(0) = xsNew1(xsGlobal, xsID("Error"), xsVar(0));
+      xsThrow(xsVar(0));
+    } else {
+      // Should not get here
+      xsResult = xsUndefined;
+    }
+    free(outputPtr);
+    outputPtr = NULL;
+  }
+  xsCatch {
+    // Catch JSON parse error or other exception
+    free(outputPtr);
+		xsThrow(xsException);
+  }
 }
