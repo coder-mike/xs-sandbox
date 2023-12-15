@@ -28,12 +28,18 @@ static bool active = false;
 
 // Function callable by the guest to send a command to the host
 void host_sendMessage(xsMachine* the);
+void host_consoleLog(xsMachine* the);
+void host_consoleWarn(xsMachine* the);
+void host_consoleError(xsMachine* the);
+void host_consoleOutput(xsMachine* the, int level);
 
 extern ErrorCode sendMessage(uint8_t* buffer, size_t size, uint8_t** outputPtrPtr, size_t* outputSizePtr);
+extern void consoleLog(uint8_t* argsAsJson, size_t len, int level);
 
-#define snapshotCallbackCount 1
+#define snapshotCallbackCount 2
 xsCallback snapshotCallbacks[snapshotCallbackCount] = {
   host_sendMessage,
+  host_consoleLog,
 };
 
 static xsBooleanValue meteringCallback(xsMachine* the, xsUnsignedValue index) {
@@ -73,10 +79,23 @@ uint32_t getMeteringCount() {
 void populateGlobals(xsMachine* the) {
   xsBeginHost(machine);
 	{
-    xsVars(1);
+    xsVars(2);
 
-    xsResult = xsNewHostFunction(host_sendMessage, 1);
-    xsDefine(xsGlobal, xsID("sendMessage"), xsResult, xsDontEnum);
+    // Global sendMessage
+    xsVar(0) = xsNewHostFunction(host_sendMessage, 1);
+    xsDefine(xsGlobal, xsID("sendMessage"), xsVar(0), xsDontEnum);
+
+    // Create global console object
+    xsVar(0) = xsNewObject();
+    xsDefine(xsGlobal, xsID("console"), xsVar(0), xsDontEnum);
+
+    // Create console.log function
+    xsVar(1) = xsNewHostFunction(host_consoleLog, 1);
+    xsDefine(xsVar(0), xsID("log"), xsVar(1), xsDontEnum);
+
+    // I decided not to support console.warn because it's less commonly used,
+    // and not to support console.error because Error objects don't serialize
+    // well (and errors would be a common thing to pass to console.error).
   }
   xsEndHost(machine);
 }
@@ -351,4 +370,39 @@ void host_sendMessage(xsMachine* the) {
     free(outputPtr);
 		xsThrow(xsException);
   }
+}
+
+
+void host_consoleLog(xsMachine* the) {
+  host_consoleOutput(the, 0);
+}
+
+void host_consoleWarn(xsMachine* the) {
+  host_consoleOutput(the, 1);
+}
+
+void host_consoleError(xsMachine* the) {
+  host_consoleOutput(the, 2);
+}
+
+void host_consoleOutput(xsMachine* the, int level) {
+  // Stringify the args into a JSON array
+  xsVars(3);
+	xsIntegerValue c = xsToInteger(xsArgc);
+  xsVar(0) = xsNewArray(c);
+  for (int i = 0; i < c; i++) {
+    xsVar(1) = xsInteger(i);
+    xsSetAt(xsVar(0), xsVar(1), xsArg(i));
+  }
+  xsVar(1) = xsGet(xsGlobal, xsID("JSON"));
+  xsVar(0) = xsCall1(xsVar(1), xsID("stringify"), xsVar(0));
+
+  char* str = xsToString(xsVar(0));
+  size_t len = strlen(str);
+  char* buffer = malloc(len + 1);
+  strcpy(buffer, str);
+
+  consoleLog((uint8_t*)buffer, len, level);
+
+  free(buffer);
 }

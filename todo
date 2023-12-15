@@ -9,9 +9,9 @@
 - [x] Exception from sendMessage
 - [x] Undefined from sendMessage
 - [x] Location information on exceptions
-- [ ] Console.log
-- [ ] Consider reentrancy
-- [ ] Consider reentrancy and snapshotting (e.g. snapshotting while the stack is active or snapshotting in the job queue).
+- [x] Console.log
+- [x] Consider reentrancy
+- [x] Consider reentrancy and snapshotting (e.g. snapshotting while the stack is active or snapshotting in the job queue).
 - [ ] Filenames in stack traces
 - [ ] Instrumentation and debugging
 - [ ] Test and document behavior of non-deterministic behavior

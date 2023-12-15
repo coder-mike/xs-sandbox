@@ -2,7 +2,7 @@
 
 *Note: this library has not been published to npm yet.*
 
-Secure and easy JavaScript sandbox with snapshotting support, with no dependencies or native modules. Compatible with Node.js or browser environment.
+Secure and easy JavaScript sandbox with heap snapshotting support, with no dependencies or native modules. Compatible with Node.js or browser environment.
 
 Internally uses a WASM build of the XS JavaScript engine (guest scripts are not running in the same engine as the host and so are completely isolated). It's reasonably lightweight -- each instance is a few MB.
 
@@ -17,7 +17,9 @@ const result = sandbox.evaluate('1 + 1');
 console.log(result); // 2
 ```
 
-## Usage: Snapshotting
+## Usage: Heap Snapshotting
+
+Heap snapshotting can be used to save the state of the guest and restore it later.
 
 ```js
 import Sandbox from 'xs-sandbox';
@@ -123,11 +125,17 @@ This prints:
 Points 4 and 5 show that the promise job queue is processed before `evaluate` returns.
 
 
+## Debugging
+
+There is no way to attach a debugger to the guest, but the following debug assistance has been provided:
+
+- `console.log` is provided in the guest and forwards its arguments to the host console via JSON serialization.
+- The `stack` of a thrown `Error` in the guest will be passed to the host. (But stacks from host errors are not visible to the guest for security reasons).
+
+
 ## Guest Environment and Globals
 
-The environment in which the guest script runs is a vanilla ECMAScript environment with no I/O APIs except `sendMessage` and `receiveMessage`. You can define your own APIs for the guest by first evaluating your own setup script which implements APIs in terms of `sendMessage` and `receiveMessage`.
-
-**None of the host environments globals are available to the guest script!**
+The environment in which the guest script runs is a vanilla ECMAScript environment with no I/O APIs except `sendMessage`, `receiveMessage`, `evaluate`, and `console.log`. You can define your own APIs for the guest by first evaluating your own setup script which implements APIs in terms of `sendMessage` and `receiveMessage`.
 
 
 ## Known issues

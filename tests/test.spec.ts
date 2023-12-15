@@ -288,3 +288,19 @@ test('exception stack', async () => {
     { stack: 'Error: guest error\n at receiveMessage (#0:3)' }
   );
 });
+
+test('console.log', async() => {
+  const sandbox = await XSSandbox.create();
+  let consoleOutput: string[][] = [];
+  const temp = console.log;
+  console.log = (...args) => consoleOutput.push(args);
+  try {
+    sandbox.evaluate(`
+      console.log('hello', 42);
+      console.log('world');
+    `);
+    assert.deepEqual(consoleOutput, [['hello', 42], ['world']]);
+  } finally {
+    console.log = temp;
+  }
+})

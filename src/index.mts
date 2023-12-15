@@ -77,6 +77,16 @@ async function createWasmSandbox(opts: XSSandboxOptions): Promise<[any, XSSandbo
         wasm.HEAPU32[outputSizePtr / 4] = bytesResult.length - 1;
         return EC_EXCEPTION;
       }
+    },
+    consoleLog: (argsPtr: number, argsSize: number, level: number) => {
+      const bytes = new Uint8Array(wasm.HEAPU8.buffer, argsPtr, argsSize);
+      const str = new TextDecoder().decode(bytes);
+      const args = JSON.parse(str);
+      switch (level) {
+        case 0: console.log(...args); break;
+        case 1: console.warn(...args); break;
+        case 2: console.error(...args); break;
+      }
     }
   });
   const sandbox = new XSSandbox(wasm, opts);
