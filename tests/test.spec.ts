@@ -304,3 +304,25 @@ test('console.log', async() => {
     console.log = temp;
   }
 })
+
+test('meter expired in run loop', async () => {
+  const sandbox = await XSSandbox.create({
+    meteringInterval: 1,
+    meteringLimit: 1000
+  });
+  sandbox.evaluate(`
+    receiveMessage = function() {
+      run();
+      return 42;
+    }
+    async function run() {
+      await Promise.resolve();
+      while(true) ;
+    }
+  `);
+
+  assert.throws(
+    () => sandbox.sendMessage(null),
+    { message: 'Metering limit reached' }
+  );
+});

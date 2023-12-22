@@ -316,17 +316,28 @@ ErrorCode sandboxInput(uint8_t* payload, uint32_t** out_buffer, uint32_t* out_si
     {
       code = sandboxInputReenter(payload, out_buffer, out_size, action);
     }
-    // TODO: What happens when there's an exception and we try run the loop? And
-    // is it possible for the loop to throw more exceptions?
-    // TODO: What happens if the meter ran out before we process the loop?
+    // Note: the run loop can't throw an exception because the only way to
+    // enqueue jobs is as promise continuations, which are specified to just
+    // reject the outer promise.
+    //
+    // Note: if the meter expires while in the run loop, it will jump to
+    // xsEndMetering and sandboxInput will return EC_METERING_LIMIT_REACHED.
     xsRunLoop(machine);
     xsEndHost(machine);
     lastMeterValue = xsGetCurrentMeter(machine);
   }
   xsEndMetering(machine);
 
-  if (meteringLimit && (lastMeterValue > meteringLimit)) {
+  if (meteringLimit && (lastMeterValue >= meteringLimit)) {
     code = EC_METERING_LIMIT_REACHED;
+    // It's possible that we already had a return value. E.g. if
+    // sandboxInputReenter populated a return value and then the meter was
+    // reached in the run loop.
+    if (*out_buffer) {
+      free(*out_buffer);
+      *out_buffer = NULL;
+      *out_size = 0;
+    }
   }
 
   active = false;

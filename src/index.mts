@@ -17,7 +17,6 @@ export interface XSSandboxOptions {
    * sandbox will halt. The default is none.
    */
   meteringLimit?: number;
-
 }
 
 export class XSSandboxError extends Error {

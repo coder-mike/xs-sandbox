@@ -12,12 +12,13 @@
 - [x] Console.log
 - [x] Consider reentrancy
 - [x] Consider reentrancy and snapshotting (e.g. snapshotting while the stack is active or snapshotting in the job queue).
+- [x] Check failure cases like metering expiry or other exception.
+- [x] What happens with exceptions in the run loop?
+- [x] What happens if the meter runs out before we process the loop?
 - [ ] Filenames in stack traces
 - [ ] Instrumentation and debugging
 - [ ] Test and document behavior of non-deterministic behavior
-- [ ] Check failure cases like metering expiry or other exception.
 - [ ] Check memory usage and performance. Maybe try spinning up 1000 instances.
-- [ ] Add TextDecoder and TextEncoder
 - [ ] Check the TODOs in code
 - [ ] Support ESModules
 
