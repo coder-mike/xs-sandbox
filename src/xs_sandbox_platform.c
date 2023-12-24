@@ -245,7 +245,6 @@ txID fxFindModule(txMachine* the, txSlot* realm, txID moduleID, txSlot* slot)
 
 void fxQueuePromiseJobs(txMachine* the)
 {
-	// TODO: What does this mean? Will this be a problem if there are multiple promise jobs queued?
 	the->promiseJobs = 1;
 }
 

@@ -90,7 +90,6 @@ typedef int txSocket;
 #define mxMachinePlatform \
 	int abortStatus; \
 	int promiseJobs; \
-	void* timerJobs; \
 	void* waiterCondition; \
 	void* waiterData; \
 	void* waiterLink; \
