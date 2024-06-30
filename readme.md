@@ -1,7 +1,5 @@
 # XS Sandbox
 
-*Note: this library has not been published to npm yet.*
-
 Secure and easy JavaScript sandbox with heap snapshotting support, with no dependencies or native modules. Compatible with Node.js or browser environment.
 
 Internally uses a WASM build of the XS JavaScript engine (guest scripts are not running in the same engine as the host and so are completely isolated). It's reasonably lightweight -- each instance is a few MB.
